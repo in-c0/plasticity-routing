@@ -10,17 +10,18 @@ source-tree hash, config hash, or seed is not the one recorded here.
 
 ## Blockers
 
+- leakage audit missing or failing; run `make l5 && make leakage`
 - L5 verdict missing or failing
 
 ## Admissible code
 
 | | |
 |---|---|
-| commit | `b682e305a6a0d8718882e7f20a194ccd93ce021c` |
-| source-tree sha256 | `9f545cd39d20bf416ad88dd79d191d53b6ee06c872eda8822710f78df2b6d892` |
+| commit | `913ac41e1c71a315688f10299e3a0d08e14a998d` |
+| source-tree sha256 | `0c66fb4911152ba686ed3cab3c111451983580b9272401ef5473c1a784906081` |
 | config hash | `7a2d06f526ace1c0` |
-| test suite | 92 passed in 32.74s |
-| leakage audit L1-L7 | PASSED |
+| test suite | 92 passed in 47.60s |
+| leakage audit L1-L7 | FAILED / MISSING |
 | L5 shuffled/real advantage ratio | 0.5212373203562184 |
 
 Any edit to `src/`, `scripts/`, or the frozen configuration changes the

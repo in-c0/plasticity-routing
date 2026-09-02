@@ -2,10 +2,11 @@
   "protocol_version": "1.0",
   "frozen": false,
   "blockers": [
+    "leakage audit missing or failing; run `make l5 && make leakage`",
     "L5 verdict missing or failing"
   ],
-  "admissible_commit": "b682e305a6a0d8718882e7f20a194ccd93ce021c",
-  "source_tree_sha256": "9f545cd39d20bf416ad88dd79d191d53b6ee06c872eda8822710f78df2b6d892",
+  "admissible_commit": "913ac41e1c71a315688f10299e3a0d08e14a998d",
+  "source_tree_sha256": "0c66fb4911152ba686ed3cab3c111451983580b9272401ef5473c1a784906081",
   "config_hash": "7a2d06f526ace1c0",
   "environment": {
     "python": "3.12.14",
@@ -101,8 +102,8 @@
     2,
     3
   ],
-  "test_summary": "92 passed in 32.74s",
-  "leakage_audit_passed": true,
+  "test_summary": "92 passed in 47.60s",
+  "leakage_audit_passed": false,
   "l5": {
     "passed": false,
     "ratio_shuffled_over_real": 0.5212373203562184
