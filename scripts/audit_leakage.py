@@ -38,6 +38,58 @@ def audit(seeds: list[int], router_factories: dict) -> dict:
                               "hidden_in_whitelist": hidden_present,
                               "n_features": len(F.FEATURE_NAMES)}})
 
+    # L2 -- permuting hidden labels must not change any legal decision
+    l2 = []
+    for name, make in router_factories.items():
+        for sd in seeds[:2]:
+            base = build_world(wcfg, seed=sd)
+            perm = build_world(wcfg, seed=sd)
+            remap = {0: 2, 1: 3, 2: 0, 3: 1}
+            for e in perm.events:
+                e.hidden_class = remap[e.hidden_class]
+                e.ideal_action = remap[e.ideal_action]
+            a = rollout(base, make(), ccfg, scfg, seed=sd, keep_decisions=True)
+            b = rollout(perm, make(), ccfg, scfg, seed=sd, keep_decisions=True)
+            l2.append({"router": name, "seed": sd,
+                       "identical": [d.action for d in a.decisions] == [d.action for d in b.decisions]})
+    checks.append({"id": "L2", "name": "hidden_label_permutation_invariance",
+                   "passed": all(x["identical"] for x in l2), "detail": l2})
+
+    # L4 -- truncating the future must not change any past decision
+    l4 = []
+    cut = wcfg.lifetime // 2
+    for name, make in router_factories.items():
+        for sd in seeds[:2]:
+            full = build_world(wcfg, seed=sd)
+            trunc = build_world(wcfg, seed=sd)
+            trunc.events = [e for e in trunc.events if e.t < cut]
+            a = rollout(full, make(), ccfg, scfg, seed=sd, keep_decisions=True)
+            b = rollout(trunc, make(), ccfg, scfg, seed=sd, keep_decisions=True)
+            l4.append({"router": name, "seed": sd,
+                       "prefix_identical": [(d.t, d.action) for d in a.decisions if d.t < cut]
+                                           == [(d.t, d.action) for d in b.decisions if d.t < cut]})
+    checks.append({"id": "L4", "name": "causal_ordering_future_blindness",
+                   "passed": all(x["prefix_identical"] for x in l4), "detail": l4})
+
+    # L6 -- legal routers must never be handed privileged data
+    l6 = []
+    for name, make in router_factories.items():
+        r = make()
+        seen_priv: list = []
+        original = r.act
+
+        def spy(feats, rng, privileged=None, _o=original, _s=seen_priv):
+            _s.append(privileged)
+            return _o(feats, rng, privileged)
+
+        r.act = spy  # type: ignore[method-assign]
+        rollout(build_world(wcfg, seed=seeds[0]), r, ccfg, scfg, seed=seeds[0])
+        l6.append({"router": name, "declares_privileged_fields": list(r.privileged_fields),
+                   "always_none": bool(seen_priv) and all(p is None for p in seen_priv)})
+    checks.append({"id": "L6", "name": "privilege_declaration",
+                   "passed": all(not x["declares_privileged_fields"] and x["always_none"] for x in l6),
+                   "detail": l6})
+
     # L3 -- first-encounter independence for every legal router
     l3 = {}
     for name, make in router_factories.items():

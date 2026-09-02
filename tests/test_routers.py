@@ -102,3 +102,23 @@ def test_gradient_moves_probability_toward_a_rewarded_action():
     g = lr.grad(np.ones(64), entropy_beta=0.0)
     lr.apply_grad(g, lr=0.05, state={})
     assert lr.probs(x)[SLOW] > before
+
+
+def test_heuristic_thresholds_are_all_live():
+    """Every declared hyperparameter must change behaviour on some input.
+
+    A dead knob silently shrinks the calibration grid, which under-tunes the
+    primary comparator -- the exact direction that would flatter the method
+    under test.
+    """
+    rng = np.random.default_rng(0)
+    feats = [rng.random(NF) for _ in range(400)]
+
+    def actions(**kw):
+        h = HeuristicRouter(**kw)
+        return [h.act(x, rng) for x in feats]
+
+    base = actions()
+    assert actions(seen_threshold=3) != base
+    assert actions(revision_tolerance=0.2) != base
+    assert actions(error_floor=0.9) != base

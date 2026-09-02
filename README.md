@@ -113,14 +113,26 @@ The repository keeps its own failures, because they constrain the design:
 4. **The episodic cost model was wrong** — entries did not store their keys and
    retrieval was charged `O(|E|)`, so a capacity-matched exact store beat the
    oracle. Caught by the capacity-disentanglement control.
-5. **The first trainer could not see most of the objective** — per-decision
+5. **A heuristic hyperparameter was dead** — declared and swept but never read,
+   so the primary comparator's calibration grid was effectively a third of its
+   stated size. Under-tuning the comparator flatters the proposed method, so
+   this mattered: fixing it and re-calibrating moved the headline contrast
+   from −0.010 (CI spanning zero) to −0.019 (CI excluding zero), *against* the
+   proposed method.
+6. **The first trainer could not see most of the objective** — per-decision
    credit assignment misses resource cost by ~4 orders of magnitude, misses
    interference entirely, and cannot see budget exhaustion. Its development
    objective was flat across 60 epochs. Replaced by evolution strategies on the
    preregistered objective; the failed implementation is retained.
 
-Items 3, 4 and 5 were found by this repository's own tests and controls rather
-than by inspection of results, which is what they are for.
+Items 3–6 were found by this repository's own tests, controls, and calibration
+sweeps rather than by inspection of results, which is what they are for.
+
+Development calibration currently indicates that **learned routing does not beat
+the calibrated fixed heuristic** (K1 fires), while **allocation content does
+matter** — a budget-matched random control with almost the same action mix
+scores 0.111 lower. Neither is confirmatory. See
+[`experiments/EXP-000-RESULT.md`](experiments/EXP-000-RESULT.md).
 
 ## Layout
 

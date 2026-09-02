@@ -112,10 +112,12 @@ run against the benchmark:
 
 To be frozen before confirmatory seeds:
 
-*   heuristic thresholds, from the predeclared grid
-    `seen_threshold ∈ {1,2,3}`, `revision_tolerance ∈ {0.7,0.8,0.9}`,
-    `error_floor ∈ {0.15,0.25,0.35}`, selected to **maximise** heuristic
-    performance on development seeds;
+*   heuristic thresholds — **done**: the predeclared grid
+    `seen_threshold ∈ {1,2,3} × revision_tolerance ∈ {0.7,0.8,0.9} ×
+    error_floor ∈ {0.15,0.25,0.35}` was searched by
+    `scripts/calibrate_heuristic.py` and the argmax
+    `(1, 0.8, 0.25)` frozen as the default, selected to **maximise** heuristic
+    performance on development seeds (0.4046 vs 0.3962 uncalibrated);
 *   ES hyperparameters: `generations=60`, `population=24`, `sigma=0.12`,
     `lr=0.06`, `hidden=16`, `seeds_per_generation=2`, `weight_decay=0.002`;
 *   the policy seed and checkpoint-selection rule (best development checkpoint).

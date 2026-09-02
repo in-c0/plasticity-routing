@@ -58,13 +58,18 @@ class HeuristicRouter(Router):
     router cannot beat this, the honest conclusion is that learning adds
     nothing here.
 
-    Thresholds are chosen from a predeclared grid on development seeds only
-    (see experiments/EXP-001-PREREG.md, section "Heuristic calibration").
+    Thresholds are the argmax over the predeclared grid in
+    experiments/EXP-001-PREREG.md, selected on development seeds by
+    `scripts/calibrate_heuristic.py` to make this comparator as strong as the
+    grid allows (dev objective 0.4046, versus 0.3962 for the uncalibrated
+    defaults). Under-tuning the primary comparator would flatter the method
+    under test, so the calibration budget matches the learned router's.
     """
 
     name = "HEURISTIC"
 
-    def __init__(self, seen_threshold: int = 2, revision_tolerance: float = 0.8, error_floor: float = 0.25):
+    def __init__(self, seen_threshold: int = 1, revision_tolerance: float = 0.8,
+                 error_floor: float = 0.25):
         self.seen_threshold = seen_threshold
         self.revision_tolerance = revision_tolerance
         self.error_floor = error_floor
@@ -81,7 +86,12 @@ class HeuristicRouter(Router):
             return IGNORE                       # already known well enough
         if times_seen < self.seen_threshold:
             return EPISODIC                     # unproven: cheap, reversible
-        if f["value_revised"] > 0.5:
+        # Compare against the router's own tolerance rather than the
+        # pre-thresholded `value_revised` flag, whose cut is fixed in
+        # features.py. Reading the flag made `revision_tolerance` a dead
+        # parameter and silently shrank the calibration grid from 27 points
+        # to 9.
+        if f["value_agreement"] < self.revision_tolerance:
             return FAST                         # value keeps changing -> let it decay
         return SLOW                             # recurrent and stable -> consolidate
 

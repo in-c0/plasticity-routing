@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "reasons": [],
+  "n_manifests": 33,
+  "arms": [
+    "ALL_EPISODIC",
+    "ALL_FAST",
+    "ALL_IGNORE",
+    "ALL_SLOW",
+    "CAPACITY_MATCHED_EPISODIC",
+    "DESIGNED_MAPPING",
+    "HEURISTIC",
+    "LEARNED",
+    "ORACLE",
+    "PRIVILEGED_TASKID",
+    "RANDOM_MATCHED"
+  ],
+  "classifications": [
+    "DEV_CALIBRATION"
+  ]
+}

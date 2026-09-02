@@ -65,15 +65,26 @@ def main() -> None:
             rows.append(row)
             print(f"{axis:>18} = {v:<7} -> map={list(bm)} bij={is_bijective(bm)} obj={bo:.3f}", flush=True)
 
-    mappings = {tuple(r["mapping"]) for r in rows}
-    stable = len(mappings) == 1
-    print(f"\ndistinct optimal mappings across neighbourhood: {len(mappings)} -> {sorted(mappings)}")
-    print(f"LOCALLY STABLE: {stable}")
+    from collections import Counter
+
+    counts = Counter(tuple(r["mapping"]) for r in rows)
+    modal, n_modal = counts.most_common(1)[0]
+    boundaries = [r for r in rows if tuple(r["mapping"]) != modal]
+    stable = not boundaries
+    print(f"\nmodal optimal mapping {list(modal)} holds at {n_modal}/{len(rows)} neighbourhood points")
+    if boundaries:
+        print("boundary points (the mapping changes here):")
+        for r in boundaries:
+            print(f"  {r['axis']} = {r['value']} -> {r['mapping']} (bijective={r['bijective']})")
+        print("A boundary is disqualifying only if the frozen configuration sits next to it.")
+        print("Check the frozen value's distance from each boundary along its own axis.")
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps({"seeds": args.seeds, "base_world": BASE_W,
                                     "base_substrate": BASE_S, "base_cost": BASE_C,
-                                    "rows": rows, "locally_stable": stable,
-                                    "distinct_mappings": [list(m) for m in sorted(mappings)]},
+                                    "rows": rows, "unanimous": stable,
+                                    "modal_mapping": list(modal),
+                                    "modal_fraction": n_modal / len(rows),
+                                    "boundary_points": boundaries},
                                    indent=2, default=str) + "\n")
 
 

@@ -85,6 +85,25 @@ capacity — is expected to shift the optimum, because resource-dependence of th
 right allocation is the whole thesis. Only knife-edge sensitivity is
 disqualifying.
 
+**Measured (`scripts/sensitivity.py`, dev seeds 11/12, exhaustive search at each
+point).** The optimum `[IGNORE, FAST, EPISODIC, SLOW]` holds at **15 of 16**
+neighbourhood points:
+
+| axis | values tested | optimum unchanged |
+|---|---|---|
+| `episodic_capacity` | 20, 22, 24, 26, 28 | yes (all) |
+| `fast_decay` | 0.995, 0.996, 0.997, 0.998, 0.999 | yes except **0.999** |
+| `slow_lr` | 0.5, 0.7, 0.9 | yes (all) |
+| `n_local_slots` | 40, 44, 48 | yes (all) |
+
+The single boundary is `fast_decay = 0.999`, where the optimum becomes
+`[IGNORE, IGNORE, EPISODIC, FAST]` and is no longer a bijection. This is not
+fragility of the benchmark but the point at which the *fast* substrate stops
+being a distinct depth: at `γ = 0.999` a trace retains `0.999^300 ≈ 0.74` across
+a whole regime, so "fast" and "slow" cease to differ in persistence and one of
+the four actions becomes redundant. The frozen value `0.997` sits two grid steps
+away from that boundary, which is the required margin.
+
 ### The frozen configuration
 
 `key_dim=96`, `value_dim=16`, `lifetime=3000`, `regime_len=300`,
@@ -124,6 +143,14 @@ All pre-result, all on development seeds, all logged in
     single-use. Leakage test L3 caught this on an *untrained* policy. Fixed by
     uniform introduction times over the whole lifetime plus independent
     per-class Bernoulli emission.
+*   **A heuristic hyperparameter was dead.** `HeuristicRouter.revision_tolerance`
+    was declared and swept, but the router read the pre-thresholded
+    `value_revised` feature instead, whose cut is fixed in `features.py`. The
+    calibration grid was therefore effectively 9 points, not 27 — silently
+    under-tuning the *primary comparator*, which is the direction that flatters
+    the method under test. Caught because every setting of the parameter scored
+    identically. `tests/test_routers.py` now asserts that every declared
+    threshold changes behaviour.
 *   **Episodic cost was understated.** Entries did not store their keys and
     retrieval was charged O(|E|). Under that model a capacity-matched episodic
     control beat the oracle, because exact storage had no space or search
