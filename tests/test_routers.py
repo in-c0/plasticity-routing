@@ -122,3 +122,70 @@ def test_heuristic_thresholds_are_all_live():
     assert actions(seen_threshold=3) != base
     assert actions(revision_tolerance=0.2) != base
     assert actions(error_floor=0.9) != base
+
+
+def test_extended_heuristic_is_legal_and_charged():
+    from plasticity_routing.routers import ExtendedHeuristicRouter
+
+    r = ExtendedHeuristicRouter()
+    assert r.legal and r.privileged_fields == () and r.n_params > 0
+
+
+def test_extended_heuristic_can_emit_every_action():
+    from plasticity_routing.routers import ExtendedHeuristicRouter
+
+    rng = np.random.default_rng(0)
+    seen = set()
+    for st in (1, 2, 3):
+        for ef in (0.05, 0.3, 0.6):
+            r = ExtendedHeuristicRouter(seen_threshold=st, error_floor=ef, slow_recurrence=1,
+                                        query_evidence=0.0, budget_guard=0.0)
+            for _ in range(300):
+                seen.add(r.act(rng.random(NF), rng))
+    assert seen == set(ACTIONS), f"extended heuristic never emits {set(ACTIONS) - seen}"
+
+
+def test_extended_heuristic_knobs_are_all_live():
+    from plasticity_routing.routers import ExtendedHeuristicRouter
+    from plasticity_routing.substrates import FAST
+
+    rng = np.random.default_rng(0)
+    feats = [rng.random(NF) for _ in range(600)]
+
+    def actions(**kw):
+        r = ExtendedHeuristicRouter(**kw)
+        return [r.act(x, rng) for x in feats]
+
+    base = actions()
+    for kw in ({"seen_threshold": 4}, {"revision_tolerance": 0.45}, {"error_floor": 0.55},
+               {"slow_recurrence": 8}, {"query_evidence": 3.5}, {"budget_guard": 0.75},
+               {"recurrent_default": FAST}, {"novel_action": FAST}):
+        assert actions(**kw) != base, f"dead knob: {kw}"
+
+
+def test_es_init_overrides_actually_take_effect():
+    """Regression: `init_bias` / `init_params` were snapshotted after being set,
+    making them silent no-ops and invalidating the discoverability diagnostic."""
+    from dataclasses import replace
+
+    from plasticity_routing.config import EXP001
+    from plasticity_routing.train import ESConfig, train_router_es
+    from plasticity_routing.world import build_world
+
+    seeds = [11]
+    worlds = {s: build_world(EXP001.world, seed=s) for s in seeds}
+    cfg = replace(ESConfig(), generations=1, population=2, seeds_per_generation=1)
+
+    base, hb = train_router_es(EXP001.world, EXP001.substrate, EXP001.cost, seeds, cfg,
+                               policy_seed=0, worlds=worlds)
+    bias = np.zeros(N_ACTIONS)
+    bias[SLOW] = 8.0
+    primed, hp = train_router_es(EXP001.world, EXP001.substrate, EXP001.cost, seeds, cfg,
+                                 policy_seed=0, worlds=worlds, init_bias=bias)
+    assert hb[0]["dev_objective"] != hp[0]["dev_objective"], "init_bias had no effect"
+
+    other = LearnedRouter(hidden=cfg.hidden, seed=99)
+    cloned, hc = train_router_es(EXP001.world, EXP001.substrate, EXP001.cost, seeds, cfg,
+                                 policy_seed=0, worlds=worlds,
+                                 init_params=other.p.flat().copy())
+    assert hc[0]["dev_objective"] != hb[0]["dev_objective"], "init_params had no effect"

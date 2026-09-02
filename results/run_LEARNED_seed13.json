@@ -1,13 +1,13 @@
 {
   "action_histogram": {
-    "EPISODIC": 1020,
-    "FAST": 707,
-    "IGNORE": 0,
-    "SLOW": 0
+    "EPISODIC": 392,
+    "FAST": 914,
+    "IGNORE": 300,
+    "SLOW": 121
   },
   "arm": "LEARNED",
   "classification": "DEV_CALIBRATION",
-  "config_hash": "06ee9b9487a7d859",
+  "config_hash": "7a2d06f526ace1c0",
   "cost_config": {
     "key_dim": 96,
     "lam_compute": 0.05,
@@ -28,31 +28,31 @@
   "diagnostics": {
     "confusion_hidden_class_by_action": {
       "LOCAL": {
-        "EPISODIC": 76,
-        "FAST": 387,
-        "IGNORE": 0,
-        "SLOW": 0
+        "EPISODIC": 323,
+        "FAST": 107,
+        "IGNORE": 14,
+        "SLOW": 19
       },
       "NOISE": {
-        "EPISODIC": 428,
-        "FAST": 0,
-        "IGNORE": 0,
+        "EPISODIC": 0,
+        "FAST": 295,
+        "IGNORE": 133,
         "SLOW": 0
       },
       "ONE_OFF": {
-        "EPISODIC": 446,
-        "FAST": 0,
-        "IGNORE": 0,
+        "EPISODIC": 0,
+        "FAST": 317,
+        "IGNORE": 129,
         "SLOW": 0
       },
       "STABLE": {
-        "EPISODIC": 70,
-        "FAST": 320,
-        "IGNORE": 0,
-        "SLOW": 0
+        "EPISODIC": 69,
+        "FAST": 195,
+        "IGNORE": 24,
+        "SLOW": 102
       }
     },
-    "routing_agreement": 0.4823393167342212
+    "routing_agreement": 0.19803126809496235
   },
   "environment": {
     "machine": "arm64",
@@ -61,14 +61,16 @@
     "python": "3.12.14"
   },
   "first_encounter_leakage": {
-    "mutual_information_bits": 0.0,
+    "mutual_information_bits": 0.0007920194569593347,
     "n": 988,
-    "null_mean_bits": 0.0,
-    "null_p95_bits": 0.0,
-    "p_value": 1.0
+    "null_mean_bits": 0.00217299610647118,
+    "null_p95_bits": 0.005392728371699619,
+    "p_value": 0.79
   },
-  "git_sha": "584ccd637e3c4c10c0e8402036000db7182d9e9b",
-  "invalidation_reasons": [],
+  "git_sha": "1e9b390b17afecd5e3e26633a030a1b71232c7f0",
+  "invalidation_reasons": [
+    "leakage_audit_failed:L5"
+  ],
   "leakage_audit": {
     "checks": [
       {
@@ -79,6 +81,177 @@
         },
         "id": "L1",
         "name": "feature_whitelist_purity",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "identical": true,
+            "router": "ALL_IGNORE",
+            "seed": 11
+          },
+          {
+            "identical": true,
+            "router": "ALL_IGNORE",
+            "seed": 12
+          },
+          {
+            "identical": true,
+            "router": "ALL_EPISODIC",
+            "seed": 11
+          },
+          {
+            "identical": true,
+            "router": "ALL_EPISODIC",
+            "seed": 12
+          },
+          {
+            "identical": true,
+            "router": "ALL_FAST",
+            "seed": 11
+          },
+          {
+            "identical": true,
+            "router": "ALL_FAST",
+            "seed": 12
+          },
+          {
+            "identical": true,
+            "router": "ALL_SLOW",
+            "seed": 11
+          },
+          {
+            "identical": true,
+            "router": "ALL_SLOW",
+            "seed": 12
+          },
+          {
+            "identical": true,
+            "router": "HEURISTIC",
+            "seed": 11
+          },
+          {
+            "identical": true,
+            "router": "HEURISTIC",
+            "seed": 12
+          },
+          {
+            "identical": true,
+            "router": "LEARNED_UNTRAINED",
+            "seed": 11
+          },
+          {
+            "identical": true,
+            "router": "LEARNED_UNTRAINED",
+            "seed": 12
+          }
+        ],
+        "id": "L2",
+        "name": "hidden_label_permutation_invariance",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "prefix_identical": true,
+            "router": "ALL_IGNORE",
+            "seed": 11
+          },
+          {
+            "prefix_identical": true,
+            "router": "ALL_IGNORE",
+            "seed": 12
+          },
+          {
+            "prefix_identical": true,
+            "router": "ALL_EPISODIC",
+            "seed": 11
+          },
+          {
+            "prefix_identical": true,
+            "router": "ALL_EPISODIC",
+            "seed": 12
+          },
+          {
+            "prefix_identical": true,
+            "router": "ALL_FAST",
+            "seed": 11
+          },
+          {
+            "prefix_identical": true,
+            "router": "ALL_FAST",
+            "seed": 12
+          },
+          {
+            "prefix_identical": true,
+            "router": "ALL_SLOW",
+            "seed": 11
+          },
+          {
+            "prefix_identical": true,
+            "router": "ALL_SLOW",
+            "seed": 12
+          },
+          {
+            "prefix_identical": true,
+            "router": "HEURISTIC",
+            "seed": 11
+          },
+          {
+            "prefix_identical": true,
+            "router": "HEURISTIC",
+            "seed": 12
+          },
+          {
+            "prefix_identical": true,
+            "router": "LEARNED_UNTRAINED",
+            "seed": 11
+          },
+          {
+            "prefix_identical": true,
+            "router": "LEARNED_UNTRAINED",
+            "seed": 12
+          }
+        ],
+        "id": "L4",
+        "name": "causal_ordering_future_blindness",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "always_none": true,
+            "declares_privileged_fields": [],
+            "router": "ALL_IGNORE"
+          },
+          {
+            "always_none": true,
+            "declares_privileged_fields": [],
+            "router": "ALL_EPISODIC"
+          },
+          {
+            "always_none": true,
+            "declares_privileged_fields": [],
+            "router": "ALL_FAST"
+          },
+          {
+            "always_none": true,
+            "declares_privileged_fields": [],
+            "router": "ALL_SLOW"
+          },
+          {
+            "always_none": true,
+            "declares_privileged_fields": [],
+            "router": "HEURISTIC"
+          },
+          {
+            "always_none": true,
+            "declares_privileged_fields": [],
+            "router": "LEARNED_UNTRAINED"
+          }
+        ],
+        "id": "L6",
+        "name": "privilege_declaration",
         "passed": true
       },
       {
@@ -309,9 +482,23 @@
         "id": "L7",
         "name": "probe_non_interference",
         "passed": true
+      },
+      {
+        "detail": {
+          "cached_passed": false,
+          "cached_tree": "9eba5a3bd104627d8524f3e76a3a2b438928ea7ad7f5848113f86befcfe1525f",
+          "current_for_this_tree": false,
+          "current_tree": "b2af41c5453596d45176d1288ce5d7259e2c7ca98f65b607d16bff29dbb61c71",
+          "ratio_shuffled_over_real": 0.5212373203562184,
+          "real_advantage": 0.2604192696869967,
+          "shuffled_advantage": 0.13574024230077353
+        },
+        "id": "L5",
+        "name": "time_shuffled_control",
+        "passed": false
       }
     ],
-    "passed": true,
+    "passed": false,
     "seeds": [
       11,
       12,
@@ -319,16 +506,16 @@
     ]
   },
   "metrics": {
-    "episodic_evictions": 991,
-    "forgetting": 0.49972211931356764,
+    "episodic_evictions": 62,
+    "forgetting": 0.2788397372360859,
     "n_queries": 2992,
-    "objective": 0.37913644831851406,
-    "task_utility": 0.8126593849924937,
+    "objective": 0.5083908861810071,
+    "task_utility": 0.846240783932648,
     "utility_by_class": {
-      "LOCAL": 0.9309643359365791,
+      "LOCAL": 0.9468570301350299,
       "NOISE": NaN,
-      "ONE_OFF": 0.8702943164926071,
-      "STABLE": 0.6504722410875636
+      "ONE_OFF": 0.5961930497376863,
+      "STABLE": 0.8208053409807113
     }
   },
   "notes": "EXP-000 development calibration. Trained and evaluated on development seeds; not evidence. See experiments/EXP-000-RESULT.md.",
@@ -346,33 +533,33 @@
     },
     "forced_ignores_budget": 0,
     "normalized": {
-      "compute": 0.884063244047619,
-      "storage": 0.9945231481481481,
-      "write": 0.400064
+      "compute": 0.7079144345238095,
+      "storage": 0.8999324074074074,
+      "write": 0.7304106666666667
     },
     "penalties": {
-      "compute": 0.044203162202380956,
-      "storage": 0.09945231481481481,
-      "write": 0.0400064
+      "compute": 0.03539572172619048,
+      "storage": 0.08999324074074075,
+      "write": 0.07304106666666667
     },
-    "read_compute_elements": 13698624,
+    "read_compute_elements": 10857696,
     "router_compute_elements": 559548,
-    "storage_element_steps": 17185360,
-    "total_compute_elements": 14258172,
-    "write_budget_utilization": 0.400064,
+    "storage_element_steps": 15550832,
+    "total_compute_elements": 11417244,
+    "write_budget_utilization": 0.7304106666666667,
     "write_ceiling_exceeded": false,
-    "write_elements": 1200192,
+    "write_elements": 2191232,
     "writes_by_action": {
-      "EPISODIC": 1020,
-      "FAST": 707,
-      "IGNORE": 0,
-      "SLOW": 0
+      "EPISODIC": 392,
+      "FAST": 914,
+      "IGNORE": 300,
+      "SLOW": 121
     }
   },
   "router": "LEARNED",
   "schema": "plasticity-routing/manifest/1",
   "seed": 13,
-  "source_tree_sha256": "5e2f3a4924e743e68df89935cce5b17198222a9784086707d75ad516744ccf17",
+  "source_tree_sha256": "b2af41c5453596d45176d1288ce5d7259e2c7ca98f65b607d16bff29dbb61c71",
   "substrate_config": {
     "episodic_capacity": 24,
     "fast_decay": 0.997,
@@ -383,7 +570,7 @@
     "value_dim": 16
   },
   "train_config": {
-    "generations": 60,
+    "generations": 100,
     "hidden": 16,
     "lr": 0.06,
     "population": 24,

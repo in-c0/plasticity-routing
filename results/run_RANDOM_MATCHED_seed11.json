@@ -1,13 +1,13 @@
 {
   "action_histogram": {
-    "EPISODIC": 998,
-    "FAST": 714,
-    "IGNORE": 0,
-    "SLOW": 0
+    "EPISODIC": 403,
+    "FAST": 876,
+    "IGNORE": 321,
+    "SLOW": 112
   },
   "arm": "RANDOM_MATCHED",
   "classification": "DEV_CALIBRATION",
-  "config_hash": "06ee9b9487a7d859",
+  "config_hash": "7a2d06f526ace1c0",
   "cost_config": {
     "key_dim": 96,
     "lam_compute": 0.05,
@@ -28,31 +28,31 @@
   "diagnostics": {
     "confusion_hidden_class_by_action": {
       "LOCAL": {
-        "EPISODIC": 297,
-        "FAST": 216,
-        "IGNORE": 0,
-        "SLOW": 0
+        "EPISODIC": 130,
+        "FAST": 262,
+        "IGNORE": 90,
+        "SLOW": 31
       },
       "NOISE": {
-        "EPISODIC": 243,
-        "FAST": 165,
-        "IGNORE": 0,
-        "SLOW": 0
+        "EPISODIC": 86,
+        "FAST": 209,
+        "IGNORE": 84,
+        "SLOW": 29
       },
       "ONE_OFF": {
-        "EPISODIC": 230,
-        "FAST": 160,
-        "IGNORE": 0,
-        "SLOW": 0
+        "EPISODIC": 90,
+        "FAST": 200,
+        "IGNORE": 77,
+        "SLOW": 23
       },
       "STABLE": {
-        "EPISODIC": 228,
-        "FAST": 173,
-        "IGNORE": 0,
-        "SLOW": 0
+        "EPISODIC": 97,
+        "FAST": 205,
+        "IGNORE": 70,
+        "SLOW": 29
       }
     },
-    "routing_agreement": 0.2605140186915888
+    "routing_agreement": 0.2716121495327103
   },
   "environment": {
     "machine": "arm64",
@@ -61,14 +61,16 @@
     "python": "3.12.14"
   },
   "first_encounter_leakage": {
-    "mutual_information_bits": 0.00035105165769747917,
+    "mutual_information_bits": 0.0024657818205928474,
     "n": 912,
-    "null_mean_bits": 0.002423174393575501,
-    "null_p95_bits": 0.006283592036062474,
-    "p_value": 0.922
+    "null_mean_bits": 0.007379804112536315,
+    "null_p95_bits": 0.01436466575256073,
+    "p_value": 0.962
   },
-  "git_sha": "584ccd637e3c4c10c0e8402036000db7182d9e9b",
-  "invalidation_reasons": [],
+  "git_sha": "1e9b390b17afecd5e3e26633a030a1b71232c7f0",
+  "invalidation_reasons": [
+    "leakage_audit_failed:L5"
+  ],
   "leakage_audit": {
     "checks": [
       {
@@ -79,6 +81,177 @@
         },
         "id": "L1",
         "name": "feature_whitelist_purity",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "identical": true,
+            "router": "ALL_IGNORE",
+            "seed": 11
+          },
+          {
+            "identical": true,
+            "router": "ALL_IGNORE",
+            "seed": 12
+          },
+          {
+            "identical": true,
+            "router": "ALL_EPISODIC",
+            "seed": 11
+          },
+          {
+            "identical": true,
+            "router": "ALL_EPISODIC",
+            "seed": 12
+          },
+          {
+            "identical": true,
+            "router": "ALL_FAST",
+            "seed": 11
+          },
+          {
+            "identical": true,
+            "router": "ALL_FAST",
+            "seed": 12
+          },
+          {
+            "identical": true,
+            "router": "ALL_SLOW",
+            "seed": 11
+          },
+          {
+            "identical": true,
+            "router": "ALL_SLOW",
+            "seed": 12
+          },
+          {
+            "identical": true,
+            "router": "HEURISTIC",
+            "seed": 11
+          },
+          {
+            "identical": true,
+            "router": "HEURISTIC",
+            "seed": 12
+          },
+          {
+            "identical": true,
+            "router": "LEARNED_UNTRAINED",
+            "seed": 11
+          },
+          {
+            "identical": true,
+            "router": "LEARNED_UNTRAINED",
+            "seed": 12
+          }
+        ],
+        "id": "L2",
+        "name": "hidden_label_permutation_invariance",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "prefix_identical": true,
+            "router": "ALL_IGNORE",
+            "seed": 11
+          },
+          {
+            "prefix_identical": true,
+            "router": "ALL_IGNORE",
+            "seed": 12
+          },
+          {
+            "prefix_identical": true,
+            "router": "ALL_EPISODIC",
+            "seed": 11
+          },
+          {
+            "prefix_identical": true,
+            "router": "ALL_EPISODIC",
+            "seed": 12
+          },
+          {
+            "prefix_identical": true,
+            "router": "ALL_FAST",
+            "seed": 11
+          },
+          {
+            "prefix_identical": true,
+            "router": "ALL_FAST",
+            "seed": 12
+          },
+          {
+            "prefix_identical": true,
+            "router": "ALL_SLOW",
+            "seed": 11
+          },
+          {
+            "prefix_identical": true,
+            "router": "ALL_SLOW",
+            "seed": 12
+          },
+          {
+            "prefix_identical": true,
+            "router": "HEURISTIC",
+            "seed": 11
+          },
+          {
+            "prefix_identical": true,
+            "router": "HEURISTIC",
+            "seed": 12
+          },
+          {
+            "prefix_identical": true,
+            "router": "LEARNED_UNTRAINED",
+            "seed": 11
+          },
+          {
+            "prefix_identical": true,
+            "router": "LEARNED_UNTRAINED",
+            "seed": 12
+          }
+        ],
+        "id": "L4",
+        "name": "causal_ordering_future_blindness",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "always_none": true,
+            "declares_privileged_fields": [],
+            "router": "ALL_IGNORE"
+          },
+          {
+            "always_none": true,
+            "declares_privileged_fields": [],
+            "router": "ALL_EPISODIC"
+          },
+          {
+            "always_none": true,
+            "declares_privileged_fields": [],
+            "router": "ALL_FAST"
+          },
+          {
+            "always_none": true,
+            "declares_privileged_fields": [],
+            "router": "ALL_SLOW"
+          },
+          {
+            "always_none": true,
+            "declares_privileged_fields": [],
+            "router": "HEURISTIC"
+          },
+          {
+            "always_none": true,
+            "declares_privileged_fields": [],
+            "router": "LEARNED_UNTRAINED"
+          }
+        ],
+        "id": "L6",
+        "name": "privilege_declaration",
         "passed": true
       },
       {
@@ -309,9 +482,23 @@
         "id": "L7",
         "name": "probe_non_interference",
         "passed": true
+      },
+      {
+        "detail": {
+          "cached_passed": false,
+          "cached_tree": "9eba5a3bd104627d8524f3e76a3a2b438928ea7ad7f5848113f86befcfe1525f",
+          "current_for_this_tree": false,
+          "current_tree": "b2af41c5453596d45176d1288ce5d7259e2c7ca98f65b607d16bff29dbb61c71",
+          "ratio_shuffled_over_real": 0.5212373203562184,
+          "real_advantage": 0.2604192696869967,
+          "shuffled_advantage": 0.13574024230077353
+        },
+        "id": "L5",
+        "name": "time_shuffled_control",
+        "passed": false
       }
     ],
-    "passed": true,
+    "passed": false,
     "seeds": [
       11,
       12,
@@ -319,16 +506,16 @@
     ]
   },
   "metrics": {
-    "episodic_evictions": 794,
-    "forgetting": 0.6001086279672426,
+    "episodic_evictions": 307,
+    "forgetting": 0.511871831304244,
     "n_queries": 3115,
-    "objective": 0.24446879410627856,
-    "task_utility": 0.7223431623227041,
+    "objective": 0.21673068613363705,
+    "task_utility": 0.6786500740079813,
     "utility_by_class": {
-      "LOCAL": 0.8579477460921014,
+      "LOCAL": 0.750251505194239,
       "NOISE": NaN,
-      "ONE_OFF": 0.9149151486815137,
-      "STABLE": 0.48858720707414854
+      "ONE_OFF": 0.7070535676733395,
+      "STABLE": 0.578674404446407
     }
   },
   "notes": "EXP-000 development calibration. Trained and evaluated on development seeds; not evidence. See experiments/EXP-000-RESULT.md.",
@@ -346,33 +533,33 @@
     },
     "forced_ignores_budget": 0,
     "normalized": {
-      "compute": 0.7696607142857143,
-      "storage": 0.9905435185185185,
-      "write": 0.40282666666666667
+      "compute": 0.778875,
+      "storage": 0.9774638888888889,
+      "write": 0.6929333333333333
     },
     "penalties": {
-      "compute": 0.03848303571428571,
-      "storage": 0.09905435185185185,
-      "write": 0.04028266666666667
+      "compute": 0.03894375,
+      "storage": 0.0977463888888889,
+      "write": 0.06929333333333333
     },
-    "read_compute_elements": 12413088,
+    "read_compute_elements": 12561696,
     "router_compute_elements": 0,
-    "storage_element_steps": 17116592,
-    "total_compute_elements": 12413088,
-    "write_budget_utilization": 0.40282666666666667,
+    "storage_element_steps": 16890576,
+    "total_compute_elements": 12561696,
+    "write_budget_utilization": 0.6929333333333333,
     "write_ceiling_exceeded": false,
-    "write_elements": 1208480,
+    "write_elements": 2078800,
     "writes_by_action": {
-      "EPISODIC": 998,
-      "FAST": 714,
-      "IGNORE": 0,
-      "SLOW": 0
+      "EPISODIC": 403,
+      "FAST": 876,
+      "IGNORE": 321,
+      "SLOW": 112
     }
   },
   "router": "RANDOM_MATCHED",
   "schema": "plasticity-routing/manifest/1",
   "seed": 11,
-  "source_tree_sha256": "5e2f3a4924e743e68df89935cce5b17198222a9784086707d75ad516744ccf17",
+  "source_tree_sha256": "b2af41c5453596d45176d1288ce5d7259e2c7ca98f65b607d16bff29dbb61c71",
   "substrate_config": {
     "episodic_capacity": 24,
     "fast_decay": 0.997,
@@ -383,7 +570,7 @@
     "value_dim": 16
   },
   "train_config": {
-    "generations": 60,
+    "generations": 100,
     "hidden": 16,
     "lr": 0.06,
     "population": 24,

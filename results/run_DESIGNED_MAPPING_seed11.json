@@ -7,7 +7,7 @@
   },
   "arm": "DESIGNED_MAPPING",
   "classification": "DEV_CALIBRATION",
-  "config_hash": "06ee9b9487a7d859",
+  "config_hash": "7a2d06f526ace1c0",
   "cost_config": {
     "key_dim": 96,
     "lam_compute": 0.05,
@@ -67,8 +67,10 @@
     "null_p95_bits": 0.01370432856353479,
     "p_value": 0.0
   },
-  "git_sha": "584ccd637e3c4c10c0e8402036000db7182d9e9b",
-  "invalidation_reasons": [],
+  "git_sha": "1e9b390b17afecd5e3e26633a030a1b71232c7f0",
+  "invalidation_reasons": [
+    "leakage_audit_failed:L5"
+  ],
   "leakage_audit": {
     "checks": [
       {
@@ -79,6 +81,177 @@
         },
         "id": "L1",
         "name": "feature_whitelist_purity",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "identical": true,
+            "router": "ALL_IGNORE",
+            "seed": 11
+          },
+          {
+            "identical": true,
+            "router": "ALL_IGNORE",
+            "seed": 12
+          },
+          {
+            "identical": true,
+            "router": "ALL_EPISODIC",
+            "seed": 11
+          },
+          {
+            "identical": true,
+            "router": "ALL_EPISODIC",
+            "seed": 12
+          },
+          {
+            "identical": true,
+            "router": "ALL_FAST",
+            "seed": 11
+          },
+          {
+            "identical": true,
+            "router": "ALL_FAST",
+            "seed": 12
+          },
+          {
+            "identical": true,
+            "router": "ALL_SLOW",
+            "seed": 11
+          },
+          {
+            "identical": true,
+            "router": "ALL_SLOW",
+            "seed": 12
+          },
+          {
+            "identical": true,
+            "router": "HEURISTIC",
+            "seed": 11
+          },
+          {
+            "identical": true,
+            "router": "HEURISTIC",
+            "seed": 12
+          },
+          {
+            "identical": true,
+            "router": "LEARNED_UNTRAINED",
+            "seed": 11
+          },
+          {
+            "identical": true,
+            "router": "LEARNED_UNTRAINED",
+            "seed": 12
+          }
+        ],
+        "id": "L2",
+        "name": "hidden_label_permutation_invariance",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "prefix_identical": true,
+            "router": "ALL_IGNORE",
+            "seed": 11
+          },
+          {
+            "prefix_identical": true,
+            "router": "ALL_IGNORE",
+            "seed": 12
+          },
+          {
+            "prefix_identical": true,
+            "router": "ALL_EPISODIC",
+            "seed": 11
+          },
+          {
+            "prefix_identical": true,
+            "router": "ALL_EPISODIC",
+            "seed": 12
+          },
+          {
+            "prefix_identical": true,
+            "router": "ALL_FAST",
+            "seed": 11
+          },
+          {
+            "prefix_identical": true,
+            "router": "ALL_FAST",
+            "seed": 12
+          },
+          {
+            "prefix_identical": true,
+            "router": "ALL_SLOW",
+            "seed": 11
+          },
+          {
+            "prefix_identical": true,
+            "router": "ALL_SLOW",
+            "seed": 12
+          },
+          {
+            "prefix_identical": true,
+            "router": "HEURISTIC",
+            "seed": 11
+          },
+          {
+            "prefix_identical": true,
+            "router": "HEURISTIC",
+            "seed": 12
+          },
+          {
+            "prefix_identical": true,
+            "router": "LEARNED_UNTRAINED",
+            "seed": 11
+          },
+          {
+            "prefix_identical": true,
+            "router": "LEARNED_UNTRAINED",
+            "seed": 12
+          }
+        ],
+        "id": "L4",
+        "name": "causal_ordering_future_blindness",
+        "passed": true
+      },
+      {
+        "detail": [
+          {
+            "always_none": true,
+            "declares_privileged_fields": [],
+            "router": "ALL_IGNORE"
+          },
+          {
+            "always_none": true,
+            "declares_privileged_fields": [],
+            "router": "ALL_EPISODIC"
+          },
+          {
+            "always_none": true,
+            "declares_privileged_fields": [],
+            "router": "ALL_FAST"
+          },
+          {
+            "always_none": true,
+            "declares_privileged_fields": [],
+            "router": "ALL_SLOW"
+          },
+          {
+            "always_none": true,
+            "declares_privileged_fields": [],
+            "router": "HEURISTIC"
+          },
+          {
+            "always_none": true,
+            "declares_privileged_fields": [],
+            "router": "LEARNED_UNTRAINED"
+          }
+        ],
+        "id": "L6",
+        "name": "privilege_declaration",
         "passed": true
       },
       {
@@ -309,9 +482,23 @@
         "id": "L7",
         "name": "probe_non_interference",
         "passed": true
+      },
+      {
+        "detail": {
+          "cached_passed": false,
+          "cached_tree": "9eba5a3bd104627d8524f3e76a3a2b438928ea7ad7f5848113f86befcfe1525f",
+          "current_for_this_tree": false,
+          "current_tree": "b2af41c5453596d45176d1288ce5d7259e2c7ca98f65b607d16bff29dbb61c71",
+          "ratio_shuffled_over_real": 0.5212373203562184,
+          "real_advantage": 0.2604192696869967,
+          "shuffled_advantage": 0.13574024230077353
+        },
+        "id": "L5",
+        "name": "time_shuffled_control",
+        "passed": false
       }
     ],
-    "passed": true,
+    "passed": false,
     "seeds": [
       11,
       12,
@@ -372,7 +559,7 @@
   "router": "ORACLE",
   "schema": "plasticity-routing/manifest/1",
   "seed": 11,
-  "source_tree_sha256": "5e2f3a4924e743e68df89935cce5b17198222a9784086707d75ad516744ccf17",
+  "source_tree_sha256": "b2af41c5453596d45176d1288ce5d7259e2c7ca98f65b607d16bff29dbb61c71",
   "substrate_config": {
     "episodic_capacity": 24,
     "fast_decay": 0.997,
@@ -383,7 +570,7 @@
     "value_dim": 16
   },
   "train_config": {
-    "generations": 60,
+    "generations": 100,
     "hidden": 16,
     "lr": 0.06,
     "population": 24,

@@ -1,0 +1,285 @@
+{
+  "seeds": [
+    11,
+    12,
+    13
+  ],
+  "budget_rollouts": 15300,
+  "configurations_evaluated": 5100,
+  "search_seed": 20260902,
+  "baseline_3param_objective": 0.4046362671363617,
+  "best_objective": 0.43901310365503526,
+  "best_params": {
+    "seen_threshold": 1,
+    "revision_tolerance": 0.654467616868606,
+    "error_floor": 0.21343532087712594,
+    "slow_recurrence": 1,
+    "query_evidence": 0.15543745807814613,
+    "budget_guard": 0.07692649836614757,
+    "recurrent_default": "EPISODIC",
+    "novel_action": "FAST"
+  },
+  "improvement_over_3param": 0.03437683651867357,
+  "top20": [
+    {
+      "params": {
+        "seen_threshold": 1,
+        "revision_tolerance": 0.654467616868606,
+        "error_floor": 0.21343532087712594,
+        "slow_recurrence": 1,
+        "query_evidence": 0.15543745807814613,
+        "budget_guard": 0.07692649836614757,
+        "recurrent_default": "EPISODIC",
+        "novel_action": "FAST"
+      },
+      "objective": 0.43901310365503526
+    },
+    {
+      "params": {
+        "seen_threshold": 2,
+        "revision_tolerance": 0.7024935441953528,
+        "error_floor": 0.16484428725343567,
+        "slow_recurrence": 1,
+        "query_evidence": 0.990071929537752,
+        "budget_guard": 0.17550831982741438,
+        "recurrent_default": "EPISODIC",
+        "novel_action": "FAST"
+      },
+      "objective": 0.4209058514386977
+    },
+    {
+      "params": {
+        "seen_threshold": 2,
+        "revision_tolerance": 0.7857104475463458,
+        "error_floor": 0.32996655828600063,
+        "slow_recurrence": 2,
+        "query_evidence": 2.460690450873402,
+        "budget_guard": 0.1127115173122662,
+        "recurrent_default": "EPISODIC",
+        "novel_action": "FAST"
+      },
+      "objective": 0.4199097658783107
+    },
+    {
+      "params": {
+        "seen_threshold": 2,
+        "revision_tolerance": 0.4416162979823155,
+        "error_floor": 0.3440988560684816,
+        "slow_recurrence": 2,
+        "query_evidence": 3.093519996472005,
+        "budget_guard": 0.0750461072635381,
+        "recurrent_default": "EPISODIC",
+        "novel_action": "FAST"
+      },
+      "objective": 0.41213544391323165
+    },
+    {
+      "params": {
+        "seen_threshold": 3,
+        "revision_tolerance": 0.5559586610277163,
+        "error_floor": 0.3144847916033973,
+        "slow_recurrence": 2,
+        "query_evidence": 3.557532449210525,
+        "budget_guard": 0.2736048823801802,
+        "recurrent_default": "EPISODIC",
+        "novel_action": "FAST"
+      },
+      "objective": 0.4099996611659064
+    },
+    {
+      "params": {
+        "seen_threshold": 1,
+        "revision_tolerance": 0.5367408690100585,
+        "error_floor": 0.289782011161151,
+        "slow_recurrence": 1,
+        "query_evidence": 1.411340498839237,
+        "budget_guard": 0.0971572131002926,
+        "recurrent_default": "EPISODIC",
+        "novel_action": "FAST"
+      },
+      "objective": 0.4076210068899481
+    },
+    {
+      "params": {
+        "seen_threshold": 2,
+        "revision_tolerance": 0.8755673393878959,
+        "error_floor": 0.2952761376840883,
+        "slow_recurrence": 2,
+        "query_evidence": 1.8853800545022725,
+        "budget_guard": 0.36531288111813787,
+        "recurrent_default": "EPISODIC",
+        "novel_action": "FAST"
+      },
+      "objective": 0.4072975972086242
+    },
+    {
+      "params": {
+        "seen_threshold": 3,
+        "revision_tolerance": 0.8847800671371544,
+        "error_floor": 0.4244135959786722,
+        "slow_recurrence": 3,
+        "query_evidence": 3.8790392253392567,
+        "budget_guard": 0.05713557653733101,
+        "recurrent_default": "EPISODIC",
+        "novel_action": "FAST"
+      },
+      "objective": 0.40433636658763145
+    },
+    {
+      "params": {
+        "seen_threshold": 1,
+        "revision_tolerance": 0.48363275450133997,
+        "error_floor": 0.207085842808635,
+        "slow_recurrence": 1,
+        "query_evidence": 0.427319877316509,
+        "budget_guard": 0.5002573061118247,
+        "recurrent_default": "FAST",
+        "novel_action": "EPISODIC"
+      },
+      "objective": 0.39651492524030546
+    },
+    {
+      "params": {
+        "seen_threshold": 1,
+        "revision_tolerance": 0.6915938299274138,
+        "error_floor": 0.21369959175307382,
+        "slow_recurrence": 2,
+        "query_evidence": 0.33561197481238825,
+        "budget_guard": 0.11395343691342515,
+        "recurrent_default": "FAST",
+        "novel_action": "EPISODIC"
+      },
+      "objective": 0.3940778426250193
+    },
+    {
+      "params": {
+        "seen_threshold": 2,
+        "revision_tolerance": 0.8028964797891287,
+        "error_floor": 0.12574924979053712,
+        "slow_recurrence": 2,
+        "query_evidence": 1.1983454155565645,
+        "budget_guard": 0.08111045037899461,
+        "recurrent_default": "EPISODIC",
+        "novel_action": "FAST"
+      },
+      "objective": 0.3906683487440934
+    },
+    {
+      "params": {
+        "seen_threshold": 1,
+        "revision_tolerance": 0.7010805145539086,
+        "error_floor": 0.48586320940457217,
+        "slow_recurrence": 1,
+        "query_evidence": 0.3511429859218298,
+        "budget_guard": 0.3349204435952251,
+        "recurrent_default": "EPISODIC",
+        "novel_action": "FAST"
+      },
+      "objective": 0.39044680226163325
+    },
+    {
+      "params": {
+        "seen_threshold": 2,
+        "revision_tolerance": 0.5036517599940284,
+        "error_floor": 0.43642888259293167,
+        "slow_recurrence": 3,
+        "query_evidence": 2.63843526403104,
+        "budget_guard": 0.31073251953565006,
+        "recurrent_default": "EPISODIC",
+        "novel_action": "FAST"
+      },
+      "objective": 0.3879292040616705
+    },
+    {
+      "params": {
+        "seen_threshold": 1,
+        "revision_tolerance": 0.41619428465696273,
+        "error_floor": 0.16320799718832096,
+        "slow_recurrence": 2,
+        "query_evidence": 1.7976215969336513,
+        "budget_guard": 0.33974578251817,
+        "recurrent_default": "FAST",
+        "novel_action": "EPISODIC"
+      },
+      "objective": 0.3863969791039821
+    },
+    {
+      "params": {
+        "seen_threshold": 3,
+        "revision_tolerance": 0.9233937416432788,
+        "error_floor": 0.39180738158409023,
+        "slow_recurrence": 2,
+        "query_evidence": 1.5073228751890038,
+        "budget_guard": 0.15006173221775365,
+        "recurrent_default": "EPISODIC",
+        "novel_action": "FAST"
+      },
+      "objective": 0.38568279673477623
+    },
+    {
+      "params": {
+        "seen_threshold": 2,
+        "revision_tolerance": 0.6167710170731289,
+        "error_floor": 0.21778468549411692,
+        "slow_recurrence": 2,
+        "query_evidence": 0.0476090594815739,
+        "budget_guard": 0.5320271342957891,
+        "recurrent_default": "EPISODIC",
+        "novel_action": "EPISODIC"
+      },
+      "objective": 0.38393340066008946
+    },
+    {
+      "params": {
+        "seen_threshold": 1,
+        "revision_tolerance": 0.6255128246097097,
+        "error_floor": 0.22888453245314813,
+        "slow_recurrence": 2,
+        "query_evidence": 2.1610788706739608,
+        "budget_guard": 0.2640236867127828,
+        "recurrent_default": "FAST",
+        "novel_action": "EPISODIC"
+      },
+      "objective": 0.381293618076505
+    },
+    {
+      "params": {
+        "seen_threshold": 2,
+        "revision_tolerance": 0.7795009265994631,
+        "error_floor": 0.19620992595423584,
+        "slow_recurrence": 2,
+        "query_evidence": 1.627399921431309,
+        "budget_guard": 0.13355833152875302,
+        "recurrent_default": "FAST",
+        "novel_action": "EPISODIC"
+      },
+      "objective": 0.38119484053867875
+    },
+    {
+      "params": {
+        "seen_threshold": 3,
+        "revision_tolerance": 0.8166718083559222,
+        "error_floor": 0.46020239840200133,
+        "slow_recurrence": 2,
+        "query_evidence": 2.8866430787662263,
+        "budget_guard": 0.19460223893840933,
+        "recurrent_default": "EPISODIC",
+        "novel_action": "FAST"
+      },
+      "objective": 0.38091590185845553
+    },
+    {
+      "params": {
+        "seen_threshold": 2,
+        "revision_tolerance": 0.9360453277195036,
+        "error_floor": 0.34274620300705433,
+        "slow_recurrence": 2,
+        "query_evidence": 0.732174311553619,
+        "budget_guard": 0.38980547946180394,
+        "recurrent_default": "FAST",
+        "novel_action": "EPISODIC"
+      },
+      "objective": 0.38060558082632096
+    }
+  ]
+}

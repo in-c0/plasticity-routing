@@ -118,9 +118,21 @@ To be frozen before confirmatory seeds:
     `scripts/calibrate_heuristic.py` and the argmax
     `(1, 0.8, 0.25)` frozen as the default, selected to **maximise** heuristic
     performance on development seeds (0.4046 vs 0.3962 uncalibrated);
-*   ES hyperparameters: `generations=60`, `population=24`, `sigma=0.12`,
-    `lr=0.06`, `hidden=16`, `seeds_per_generation=2`, `weight_decay=0.002`;
-*   the policy seed and checkpoint-selection rule (best development checkpoint).
+*   ES hyperparameters — **done**: `generations=100` (plateau at generation 86 by
+    the rule fixed before running `scripts/es_budget_study.py`; 60 → 200 is worth
+    only +0.015), `population=24`, `sigma=0.12`, `lr=0.06`, `hidden=16`,
+    `seeds_per_generation=2`, `weight_decay=0.002`;
+*   the policy-seed rule — **done**: `POLICY_SEEDS = (0, 1, 2)`, carrying forward
+    the policy with the best **development** objective
+    (`scripts/select_policy.py`). Policy-seed spread (0.133) is roughly ten times
+    the entire ES-budget effect, so a single seed would report an accident of
+    initialisation. Selection by *confirmatory* performance is prohibited;
+*   the matched comparator — **done**: the learned router consumes
+    `3 × 100 × 51 = 15,300` development rollouts, so
+    `scripts/search_heuristic_matched.py` spends the same 15,300 on
+    `ExtendedHeuristicRouter`. The primary comparator for H1 is the best legal
+    non-learned router found under that matched budget (`HEURISTIC_EXT`, dev
+    0.4390, versus 0.4046 for the three-parameter grid).
 
 **Prohibited:** tuning the world, the cost table, the objective weights, the
 substrate parameters, or the heuristic *after* seeing any confirmatory result;
@@ -132,11 +144,30 @@ router's. Deliberately weakening the primary comparator is the most direct route
 to a manufactured positive result and is the thing this clause exists to
 prevent.
 
+## 8b. Blocking status
+
+**Protocol v1.0 is NOT frozen.** Leakage test L5 fails at the frozen
+configuration: the learned router's advantage over `RANDOM_MATCHED` is +0.2604 in
+the real world and +0.1357 in the time-shuffled world, a ratio of 0.521 against
+the preregistered threshold of 0.25. The utility-attributable advantage
+`A_util = +0.1247` is clearly positive, but the criterion L5 was declared on is
+the ratio, and it has not been relaxed.
+
+Confirmatory execution is blocked until either
+
+1. a control stronger than `RANDOM_MATCHED` is introduced — matched on
+   conditional structure, not only on the marginal action distribution — and L5
+   is re-run against it; or
+2. L5's criterion is explicitly revised, justified, and logged as a pre-result
+   amendment **before** any confirmatory seed is executed.
+
+Whichever is chosen must be recorded before the confirmatory run, not after.
+
 ## 9. Validity gates, in order
 
 Inspected in this order; comparative metrics last.
 
-1. leakage audit L1–L7 passes (`make leakage`);
+1. leakage audit L1–L7 passes (`make l5 && make leakage`) — **currently failing at L5**;
 2. `scripts/validate_runs.py` certifies the manifest set;
 3. write ceiling respected by every arm; forced-ignore counts reported;
 4. benchmark admissibility C1–C6 still holds on confirmatory seeds;

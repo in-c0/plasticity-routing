@@ -24,10 +24,32 @@ negative result here is a publishable outcome, not a failure to be retried.
 | ID | Fires when | Conclusion |
 |---|---|---|
 | **K1** | `LEARNED` does not exceed `HEURISTIC` by a paired-bootstrap 95% CI excluding zero | **learned routing adds nothing over a fixed rule.** This replicates Yoon (2026, arXiv:2606.30067) in a new setting and is reported as the headline result |
-| **K2** | `LEARNED` ≈ `RANDOM_MATCHED` (CI includes zero) | any apparent gain is budget-allocation, not routing |
+| **K2** | the **utility-attributable advantage** `A_util` is not positive with a CI excluding zero | the gain does not depend on future utility being predictable, so it is not utility-driven routing |
 | **K7** | `LEARNED`'s advantage over `HEURISTIC` disappears under `CAPACITY_MATCHED` or under compute matching | the gain was capacity or compute, not routing |
 | **K9** | `PRIVILEGED_TASKID` − `HEURISTIC` ≥ `LEARNED` − `HEURISTIC` | privileged context identity explains as much as learned inference; the interesting quantity was never routing |
 | **K10** | the time-shuffled control (L5) still beats `RANDOM_MATCHED` | the router is exploiting structure other than genuine future utility |
+
+### Why K2 is defined on `A_util` and not on `LEARNED − RANDOM_MATCHED`
+
+`RANDOM_MATCHED` matches the learned router's *marginal* action distribution,
+not its conditional structure. Measured, that turns out to be far too weak a
+control: in the L5 time-shuffled world, where future utility is unpredictable by
+construction, the learned policy still beat its own matched control by +0.126 —
+slightly *more* than the +0.111 it managed in the real world. Conditional
+resource sense alone clears that bar.
+
+The corrected statistic subtracts the shuffled-world advantage from the real
+one:
+
+```
+A_util = [obj(LEARNED) − obj(RANDOM_MATCHED)]_real
+       − [obj(LEARNED) − obj(RANDOM_MATCHED)]_shuffled
+```
+
+Both worlds are trained with an identical procedure and budget and differ only
+in whether future utility is predictable, so `A_util` isolates the part of the
+advantage that actually depends on learning where writing pays off. At the
+configuration that produced EXP-000 it was **−0.015**.
 
 ## Prior
 

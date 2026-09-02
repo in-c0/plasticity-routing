@@ -35,6 +35,13 @@ from .world import WorldConfig
 #: Development seeds. Used for calibration and for training the learned router.
 DEV_SEEDS = (11, 12, 13)
 
+#: Independent policy initialisations trained on DEV_SEEDS. The policy carried
+#: into a confirmatory run is the one with the best **development** objective
+#: (`scripts/select_policy.py`). Policy-seed variance turned out to dominate the
+#: ES budget -- at 60 generations three seeds spanned 0.386 to 0.502 -- so
+#: reporting a single seed would have reported an accident of initialisation.
+POLICY_SEEDS = (0, 1, 2)
+
 #: Confirmatory seeds. Disjoint from DEV_SEEDS. Frozen before any confirmatory run.
 CONFIRMATORY_SEEDS = (20260902, 20260903, 20260904, 20260905, 20260906)
 
@@ -83,7 +90,7 @@ EXP001 = ExperimentConfig(
     ),
     substrate=_substrate(),
     cost=replace(CostConfig(), key_dim=96, value_dim=16, write_element_ceiling=3_000_000),
-    train=ESConfig(),
+    train=ESConfig(generations=100),
     # NOISE -> IGNORE, ONE_OFF -> FAST, LOCAL -> EPISODIC, STABLE -> SLOW
     oracle_mapping=(IGNORE, FAST, EPISODIC, SLOW),
     designed_mapping=(IGNORE, EPISODIC, FAST, SLOW),

@@ -128,7 +128,12 @@ class ESConfig:
     Chosen on development seeds before any confirmatory run, and frozen.
     """
 
-    generations: int = 60
+    #: Frozen at 100 by scripts/es_budget_study.py: the mean running-best
+    #: development objective plateaus at generation 86 under the preregistered
+    #: rule (no +0.004 over a 40-generation window), and 60 -> 100 is worth only
+    #: +0.001. The budget was never the binding constraint; policy-seed
+    #: variance is roughly ten times larger.
+    generations: int = 100
     population: int = 24          # must be even; antithetic pairs
     sigma: float = 0.12
     lr: float = 0.06
@@ -160,8 +165,17 @@ def train_router_es(
     es_cfg: ESConfig = ESConfig(),
     policy_seed: int = 0,
     verbose: bool = False,
+    worlds: dict | None = None,
+    init_bias: np.ndarray | None = None,
+    init_params: np.ndarray | None = None,
 ) -> tuple[LearnedRouter, list[dict]]:
     """Train the routing policy by evolution strategies on development seeds.
+
+    `worlds` overrides world construction, so a control condition (for example
+    the L5 time-shuffled world) can be trained with an identical budget.
+    `init_bias` / `init_params` override the policy initialisation, which the
+    durable-write discoverability diagnostic uses to ask whether an action is
+    unreachable under the frozen budget rather than genuinely unhelpful.
 
     Why ES rather than the policy-gradient trainer above: the preregistered
     objective is
@@ -189,11 +203,22 @@ def train_router_es(
 
     router = LearnedRouter(hidden=es_cfg.hidden, seed=policy_seed)
     router.greedy = True
+
+    # Overrides must be applied BEFORE the parameter vector is snapshotted:
+    # `theta` is what ES actually optimises, and the first perturbation
+    # overwrites `router.p` wholesale. Snapshotting first made both overrides
+    # silent no-ops. Guarded by tests/test_routers.py.
+    if init_bias is not None:
+        router.p.b2[...] = np.asarray(init_bias, dtype=float)
+    if init_params is not None:
+        router.p.set_flat(np.asarray(init_params, dtype=float))
+
     theta = router.p.flat().copy()
     n = theta.size
 
     rng = np.random.default_rng(policy_seed + 9973)
-    worlds = {s: build_world(world_cfg, seed=s) for s in dev_seeds}
+    if worlds is None:
+        worlds = {s: build_world(world_cfg, seed=s) for s in dev_seeds}
     opt_state: dict = {}
     history: list[dict] = []
     best_theta, best_score = theta.copy(), -np.inf
@@ -250,3 +275,41 @@ def train_router_es(
     router.greedy = True
     history.append({"selected": "best_dev_checkpoint", "dev_objective": best_score})
     return router, history
+
+
+# ---------------------------------------------------------------------------
+# Policy persistence
+# ---------------------------------------------------------------------------
+
+
+def save_policy(path, router: LearnedRouter, meta: dict) -> None:
+    """Persist a trained policy so training happens once and is reused.
+
+    Training the same policy separately inside EXP-000, the L5 control, and any
+    later analysis is both wasteful and a correctness hazard: the three could
+    silently diverge. Everything downstream loads the same artefact.
+    """
+    import json
+    from pathlib import Path
+
+    p = Path(path)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps({
+        "schema": "plasticity-routing/policy/1",
+        "hidden": int(router.p.b1.size),
+        "temperature": router.temperature,
+        "n_params": router.n_params,
+        "params": router.p.flat().tolist(),
+        "meta": meta,
+    }, indent=2, default=str) + "\n")
+
+
+def load_policy(path) -> tuple[LearnedRouter, dict]:
+    import json
+    from pathlib import Path
+
+    d = json.loads(Path(path).read_text())
+    r = LearnedRouter(hidden=d["hidden"], seed=0, temperature=d.get("temperature", 1.0))
+    r.p.set_flat(np.asarray(d["params"], dtype=float))
+    r.greedy = True
+    return r, d["meta"]

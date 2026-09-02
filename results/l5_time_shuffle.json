@@ -1,0 +1,74 @@
+{
+  "check": "L5",
+  "name": "time_shuffled_control",
+  "threshold_ratio": 0.25,
+  "seeds": [
+    11,
+    12,
+    13
+  ],
+  "real": {
+    "label": "real",
+    "policy": "real_selected.json",
+    "policy_seed": 2,
+    "generations": 100,
+    "learned_objective": 0.5209327280149897,
+    "random_matched_objective": 0.26051345832799294,
+    "advantage": 0.2604192696869967,
+    "advantage_ci95": [
+      0.22730364132127412,
+      0.30554889003636737
+    ],
+    "advantage_excludes_zero": true,
+    "learned_action_probs": [
+      0.179146684121351,
+      0.22682354529193602,
+      0.516391470698167,
+      0.07763829988854605
+    ],
+    "per_seed_learned": [
+      0.5222795761700044,
+      0.5321277216939574,
+      0.5083908861810071
+    ],
+    "per_seed_random": [
+      0.21673068613363705,
+      0.30482408037268327,
+      0.25998560847765867
+    ]
+  },
+  "shuffled": {
+    "label": "shuffled",
+    "policy": "shuffled_selected.json",
+    "policy_seed": 0,
+    "generations": 100,
+    "learned_objective": 0.019805230736179378,
+    "random_matched_objective": -0.11593501156459417,
+    "advantage": 0.13574024230077353,
+    "advantage_ci95": [
+      0.11374884470647799,
+      0.16159533844755317
+    ],
+    "advantage_excludes_zero": true,
+    "learned_action_probs": [
+      0.8440852703395413,
+      0.0,
+      0.0,
+      0.1559147296604587
+    ],
+    "per_seed_learned": [
+      0.0308797392415164,
+      0.02000436635629571,
+      0.008531586610726026
+    ],
+    "per_seed_random": [
+      -0.13071559920603676,
+      -0.09374447835018228,
+      -0.12334495713756342
+    ]
+  },
+  "ratio_shuffled_over_real": 0.5212373203562184,
+  "utility_attributable_advantage": 0.12467902738622316,
+  "passed": false,
+  "source_tree_sha256": "9eba5a3bd104627d8524f3e76a3a2b438928ea7ad7f5848113f86befcfe1525f"
+}

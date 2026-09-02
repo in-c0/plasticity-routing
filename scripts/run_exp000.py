@@ -29,32 +29,55 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from plasticity_routing.agent import rollout  # noqa: E402
-from plasticity_routing.config import DEV_SEEDS, EXP001  # noqa: E402
+from plasticity_routing.config import DEV_SEEDS, EXP001, POLICY_SEEDS  # noqa: E402
 from plasticity_routing.manifest import build_manifest, write_manifest  # noqa: E402
 from plasticity_routing.metrics import (  # noqa: E402
     confusion_table, first_encounter_class_dependence, paired_bootstrap, summarize,
 )
 from plasticity_routing.routers import (  # noqa: E402
-    HeuristicRouter, OracleRouter, PrivilegedTaskIdRouter, RandomMatchedRouter, constant_routers,
+    ExtendedHeuristicRouter, HeuristicRouter, OracleRouter, PrivilegedTaskIdRouter,
+    RandomMatchedRouter, constant_routers,
 )
 from plasticity_routing.substrates import ACTION_NAMES  # noqa: E402
-from plasticity_routing.train import train_router_es  # noqa: E402
+from plasticity_routing.train import load_policy  # noqa: E402
 from plasticity_routing.world import CLASS_NAMES, build_world  # noqa: E402
 
 sys.path.insert(0, str(ROOT / "scripts"))
 from audit_leakage import audit as leakage_audit  # noqa: E402
 
 
+def _matched_heuristic() -> ExtendedHeuristicRouter:
+    """The best fixed rule found under a search budget matched to the ES budget.
+
+    This, not the three-parameter grid argmax, is the primary comparator for H1:
+    a comparator searched a hundred times less hard is not a fair test.
+    """
+    from plasticity_routing.substrates import ACTION_NAMES
+
+    path = ROOT / "results/heuristic_matched_search.json"
+    if not path.exists():
+        raise SystemExit("run scripts/search_heuristic_matched.py (+ merge) first")
+    prm = dict(json.loads(path.read_text())["best_params"])
+    inv = {v: k for k, v in ACTION_NAMES.items()}
+    prm["recurrent_default"] = inv[prm["recurrent_default"]]
+    prm["novel_action"] = inv[prm["novel_action"]]
+    return ExtendedHeuristicRouter(**prm)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--dev-seeds", type=int, nargs="+", default=list(DEV_SEEDS))
-    ap.add_argument("--generations", type=int, default=None)
+    ap.add_argument("--policy", type=Path, default=ROOT / "results/policies/real_selected.json")
     ap.add_argument("--out", type=Path, default=Path("results"))
     ap.add_argument("--skip-leakage", action="store_true", help="development convenience only")
+    ap.add_argument("--proceed-on-audit-failure", action="store_true",
+                    help="continue past a failing leakage audit and stamp every manifest with "
+                         "an invalidation reason. The numbers become labelled diagnostics, not "
+                         "evidence, and scripts/validate_runs.py will reject them.")
     args = ap.parse_args()
 
     wcfg, scfg, ccfg = EXP001.world, EXP001.substrate, EXP001.cost
-    tcfg = EXP001.train if args.generations is None else replace(EXP001.train, generations=args.generations)
+    tcfg = EXP001.train
     seeds = args.dev_seeds
     worlds = {s: build_world(wcfg, seed=s) for s in seeds}
 
@@ -72,18 +95,33 @@ def main() -> None:
         for c in audit["checks"]:
             print(f"  [{'PASS' if c['passed'] else 'FAIL'}] {c['id']:<10} {c['name']}")
         if not audit["passed"]:
-            print("\nLEAKAGE AUDIT FAILED -- stopping before any comparative metric is inspected.")
-            sys.exit(1)
+            failed = [c["id"] for c in audit["checks"] if not c["passed"]]
+            if not args.proceed_on_audit_failure:
+                print("\nLEAKAGE AUDIT FAILED -- stopping before any comparative metric "
+                      "is inspected.")
+                print(f"  failing checks: {failed}")
+                print("  pass --proceed-on-audit-failure to record labelled diagnostics anyway.")
+                sys.exit(1)
+            print(f"\nLEAKAGE AUDIT FAILED ({failed}) -- proceeding under "
+                  "--proceed-on-audit-failure.")
+            print("  Every manifest will be stamped invalid. These numbers are diagnostics, "
+                  "not evidence.")
 
     # ---- 2. train the learned router on development seeds ---------------
-    print("\n== 2. train learned router by ES on the preregistered objective "
-          "(development seeds only) ==")
-    learned, history = train_router_es(wcfg, scfg, ccfg, seeds, tcfg, policy_seed=0, verbose=True)
+    print("\n== 2. load the selected learned router ==")
+    if not args.policy.exists():
+        raise SystemExit(f"no selected policy at {args.policy}; run scripts/train_policy.py "
+                         "for every POLICY_SEED then scripts/select_policy.py")
+    learned, history = load_policy(args.policy)
     learned.greedy = True
+    print(f"  {args.policy.name}: policy seed {history['policy_seed']}, "
+          f"{history['generations']} generations, dev objective {history['dev_objective']:.4f}")
+    print(f"  selection rule: best development objective over POLICY_SEEDS={list(POLICY_SEEDS)}")
 
     # ---- 3. build the arm set -------------------------------------------
     arms: dict[str, object] = dict(constant_routers())
     arms["HEURISTIC"] = HeuristicRouter()
+    arms["HEURISTIC_EXT"] = _matched_heuristic()
     arms["LEARNED"] = learned
 
     results: dict[str, list] = {name: [] for name in arms}
@@ -178,7 +216,8 @@ def main() -> None:
             print(f"  {label:<44} {st['mean_diff']:+.4f}  "
                   f"[{st['ci95'][0]:+.4f}, {st['ci95'][1]:+.4f}]  {flag}")
 
-    contrast("LEARNED", "HEURISTIC", "K1  LEARNED - HEURISTIC")
+    contrast("LEARNED", "HEURISTIC_EXT", "K1  LEARNED - HEURISTIC_EXT (matched budget)")
+    contrast("LEARNED", "HEURISTIC", "    LEARNED - HEURISTIC (3-param grid)")
     contrast("LEARNED", "RANDOM_MATCHED", "K2  LEARNED - RANDOM_MATCHED")
     best_sd = max(("ALL_EPISODIC", "ALL_FAST", "ALL_SLOW"),
                   key=lambda k: summaries[k]["objective"]["mean"])
@@ -231,6 +270,9 @@ def main() -> None:
                 notes="EXP-000 development calibration. Trained and evaluated on development "
                       "seeds; not evidence. See experiments/EXP-000-RESULT.md.",
             )
+            if not audit.get("passed", False):
+                failing = [c["id"] for c in audit.get("checks", []) if not c["passed"]] or ["unknown"]
+                m["invalidation_reasons"] = [f"leakage_audit_failed:{c}" for c in failing]
             m["first_encounter_leakage"] = first_encounter_class_dependence(r.first_encounter_actions)
             m["diagnostics"]["confusion_hidden_class_by_action"] = confusion_table(r.confusion)
             write_manifest(args.out / f"run_{name}_seed{r.seed}.json", m)
@@ -244,7 +286,7 @@ def main() -> None:
         "summaries": summaries,
         "contrasts": contrasts,
         "compute_breakeven_lambda": breakeven,
-        "training_history": history,
+        "policy_meta": history,
         "leakage_passed": audit["passed"],
     }, indent=2, default=str) + "\n")
     print(f"\nwrote {n} manifests + exp000_summary.json to {args.out}/")

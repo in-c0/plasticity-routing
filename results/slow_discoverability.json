@@ -1,0 +1,97 @@
+{
+  "seeds": [
+    11,
+    12,
+    13
+  ],
+  "es_config": {
+    "generations": 100,
+    "population": 24,
+    "sigma": 0.12,
+    "lr": 0.06,
+    "hidden": 16,
+    "seeds_per_generation": 2,
+    "weight_decay": 0.002
+  },
+  "rows": {
+    "heuristic_reference": {
+      "objective": 0.4046362671363617,
+      "task_utility": 0.7978705268378699,
+      "action_probs": {
+        "IGNORE": 0.22391000435136213,
+        "EPISODIC": 0.5560899603200403,
+        "FAST": 0.08845842207224801,
+        "SLOW": 0.1315416132563495
+      },
+      "slow_share": 0.1315416132563495,
+      "utility_by_class": {
+        "NOISE": NaN,
+        "ONE_OFF": 0.9003157915102444,
+        "LOCAL": 0.8041902897076906,
+        "STABLE": 0.7545090277833166
+      }
+    },
+    "cloned_init_before_es": {
+      "objective": 0.3832843772860324,
+      "task_utility": 0.7694206309917689,
+      "action_probs": {
+        "IGNORE": 0.257120809734211,
+        "EPISODIC": 0.5560899603200403,
+        "FAST": 0.08845842207224801,
+        "SLOW": 0.0983308078735007
+      },
+      "slow_share": 0.0983308078735007,
+      "utility_by_class": {
+        "NOISE": NaN,
+        "ONE_OFF": 0.9009431771978987,
+        "LOCAL": 0.76583879480305,
+        "STABLE": 0.7279577712051211
+      },
+      "clone_accuracy": 0.9573359073359073
+    },
+    "slow_primed": {
+      "objective": 0.452360800834833,
+      "task_utility": 0.8352084855560911,
+      "action_probs": {
+        "IGNORE": 0.0,
+        "EPISODIC": 0.8253919677069587,
+        "FAST": 0.0,
+        "SLOW": 0.17460803229304134
+      },
+      "slow_share": 0.17460803229304134,
+      "utility_by_class": {
+        "NOISE": NaN,
+        "ONE_OFF": 0.7203899492214041,
+        "LOCAL": 0.930229489152346,
+        "STABLE": 0.7587670943024554
+      },
+      "initial_objective": 0.02206697281908485
+    },
+    "cloned": {
+      "objective": 0.4641589132937998,
+      "task_utility": 0.8447673793790494,
+      "action_probs": {
+        "IGNORE": 0.22780732855183417,
+        "EPISODIC": 0.6102015066815104,
+        "FAST": 0.0,
+        "SLOW": 0.16199116476665537
+      },
+      "slow_share": 0.16199116476665537,
+      "utility_by_class": {
+        "NOISE": NaN,
+        "ONE_OFF": 0.8397316921332273,
+        "LOCAL": 0.8820421983569497,
+        "STABLE": 0.8011139578273504
+      },
+      "initial_objective": 0.398459230000785
+    },
+    "random_init_reference": {
+      "best_objective": 0.5209327280149897,
+      "source": "cached policies (3 seeds)"
+    }
+  },
+  "best_random_objective": 0.5209327280149897,
+  "primed_retains_slow": true,
+  "cloned_retains_slow": true,
+  "verdict": "slow_reachable_from_random_init"
+}

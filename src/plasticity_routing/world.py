@@ -304,3 +304,59 @@ def class_histogram(world: World) -> dict[str, int]:
         if e.kind == "WRITE":
             out[CLASS_NAMES[e.hidden_class]] += 1
     return out
+
+
+def time_shuffled_world(world: World, seed: int) -> World:
+    """L5 control: destroy the link between observable history and future utility.
+
+    Every QUERY event keeps its timestamp, but its target key is redrawn
+    uniformly from the keys that are *storable and answerable* at that moment --
+    every non-NOISE key already written by time `t`. The WRITE stream, the query
+    count, the query timing, and therefore every resource cost are unchanged.
+
+    What is destroyed is the coupling between an item's observable prefix
+    (recurrence, value revision, past query traffic) and whether that item will
+    actually be needed later. In the shuffled world every live key is equally
+    likely to be queried next, so no legal feature predicts future utility.
+
+    A router trained here should therefore be unable to beat routing that is
+    matched on its own action distribution. If it still can, it is exploiting
+    something other than genuine future utility -- a residual leak, or an
+    artefact of the world -- and the real-world result is not interpretable.
+    """
+    import bisect
+    import copy
+
+    shuffled = copy.deepcopy(world)
+    rng = np.random.default_rng(seed)
+
+    first_write: dict[int, int] = {}
+    for e in shuffled.events:
+        if e.kind == "WRITE" and e.key_id not in first_write:
+            first_write[e.key_id] = e.t
+
+    # Candidates are non-NOISE keys that have been written by time t: NOISE has
+    # no truth timeline, and an unwritten key could not have been stored.
+    eligible = sorted(
+        (t, kid) for kid, t in first_write.items() if shuffled.class_of_key[kid] != NOISE
+    )
+    times = [t for t, _ in eligible]
+    ids = [kid for _, kid in eligible]
+
+    for e in shuffled.events:
+        if e.kind != "QUERY":
+            continue
+        hi = bisect.bisect_right(times, e.t)
+        if hi == 0:
+            continue
+        for _ in range(8):                      # a few draws to find a defined truth
+            kid = ids[int(rng.integers(0, hi))]
+            truth = shuffled.true_value(kid, e.t)
+            if truth is not None:
+                e.key_id = kid
+                e.key = shuffled.keys[kid]
+                e.value = truth
+                e.hidden_class = shuffled.class_of_key[kid]
+                break
+
+    return shuffled

@@ -18,6 +18,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from plasticity_routing import features as F  # noqa: E402
 from plasticity_routing.agent import rollout  # noqa: E402
 from plasticity_routing.config import EXP001  # noqa: E402
+from plasticity_routing.manifest import source_tree_sha256  # noqa: E402
 from plasticity_routing.metrics import first_encounter_class_dependence  # noqa: E402
 from plasticity_routing.routers import (  # noqa: E402
     HeuristicRouter, LearnedRouter, OracleRouter, constant_routers,
@@ -131,6 +132,25 @@ def audit(seeds: list[int], router_factories: dict) -> dict:
                    "passed": all(x["actions_identical"] and x["utility_identical"]
                                  and x["writes_identical"] for x in l7),
                    "detail": l7})
+
+    # L5 -- cached verdict from scripts/audit_l5.py, which must be current.
+    l5_path = Path(__file__).resolve().parents[1] / "results" / "l5_time_shuffle.json"
+    tree = source_tree_sha256(Path(__file__).resolve().parents[1])
+    if not l5_path.exists():
+        checks.append({"id": "L5", "name": "time_shuffled_control", "passed": False,
+                       "detail": {"reason": "no cached verdict; run `make l5`"}})
+    else:
+        cached = json.loads(l5_path.read_text())
+        current = cached.get("source_tree_sha256") == tree
+        checks.append({"id": "L5", "name": "time_shuffled_control",
+                       "passed": bool(cached.get("passed") and current),
+                       "detail": {"cached_passed": cached.get("passed"),
+                                  "current_for_this_tree": current,
+                                  "ratio_shuffled_over_real": cached.get("ratio_shuffled_over_real"),
+                                  "real_advantage": cached.get("real", {}).get("advantage"),
+                                  "shuffled_advantage": cached.get("shuffled", {}).get("advantage"),
+                                  "cached_tree": cached.get("source_tree_sha256"),
+                                  "current_tree": tree}})
 
     return {"seeds": seeds, "checks": checks, "passed": all(c["passed"] for c in checks)}
 

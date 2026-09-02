@@ -13,7 +13,7 @@ import sys
 from pathlib import Path
 
 CLAIM_ARMS = {"ALL_IGNORE", "ALL_EPISODIC", "ALL_FAST", "ALL_SLOW",
-              "HEURISTIC", "RANDOM_MATCHED", "LEARNED"}
+              "HEURISTIC", "HEURISTIC_EXT", "RANDOM_MATCHED", "LEARNED"}
 
 
 def validate(manifests: list[dict], tolerance: float = 0.02) -> dict:
@@ -76,10 +76,21 @@ def validate(manifests: list[dict], tolerance: float = 0.02) -> dict:
     if "CONFIRMATORY" in classes and len(classes) > 1:
         reasons.append("mixed_confirmatory_and_non_confirmatory_manifests")
 
+    lock_path = Path(__file__).resolve().parents[1] / "results" / "protocol_v1_lock.json"
+    lock = json.loads(lock_path.read_text()) if lock_path.exists() else None
     for m in manifests:
         if m.get("classification") == "CONFIRMATORY":
             if not m.get("git_sha"):
                 reasons.append(f"confirmatory_run_without_git_commit:{m['arm']}")
+            if lock is None or not lock.get("frozen"):
+                reasons.append(f"confirmatory_run_without_frozen_protocol:{m['arm']}")
+            else:
+                if m.get("source_tree_sha256") != lock.get("source_tree_sha256"):
+                    reasons.append(f"confirmatory_run_off_frozen_source_tree:{m['arm']}")
+                if m.get("config_hash") != lock.get("config_hash"):
+                    reasons.append(f"confirmatory_run_off_frozen_config:{m['arm']}")
+                if m.get("seed") not in lock.get("confirmatory_seeds", []):
+                    reasons.append(f"confirmatory_run_on_unlisted_seed:{m['arm']}:{m['seed']}")
             if m["seed"] in m.get("dev_seeds", []):
                 reasons.append(f"confirmatory_seed_overlaps_dev_seed:{m['arm']}:{m['seed']}")
         if m.get("invalidation_reasons"):

@@ -41,12 +41,36 @@ diagnostic and is classified `DEV_CALIBRATION`, never `CONFIRMATORY`.
 | **L2** | *Class-permutation invariance.* Permute hidden class labels while holding the observable stream fixed. Every legal router's decision sequence must be bit-identical. | a legal router's behaviour tracks permuted labels |
 | **L3** | *First-encounter independence.* SDW-1 makes classes observationally identical on first sight. Estimate the mutual information `I(hidden class ; action)` over first encounters, against a 500-fold permutation null. | MI exceeds the permutation null (p < 0.05) — the router "knows" a class it cannot yet distinguish |
 | **L4** | *Causal ordering / future blindness.* Re-run the router on a stream truncated after step `t`. Decisions up to `t` must be identical to the full-stream run. | any feature depends on the future |
-| **L5** | *Time-shuffled control.* Retrain with the future utility schedule randomised. Performance must collapse toward budget-matched random routing. | the router still wins, meaning it is exploiting structure other than genuine future utility |
+| **L5** | *Time-shuffled control.* Retrain in a world where each query's target key is redrawn uniformly from the keys already written at that moment. The write stream, query count, and query timing are byte-identical, so all budgets are unchanged; only the link between an item's observable prefix and whether it will be needed later is destroyed. | the router's advantage over budget-matched random routing survives the shuffle |
 | **L6** | *Privilege declaration.* Assert that the rollout engine passes `privileged=None` to every router with empty `privileged_fields`, and that `ORACLE`/`PRIVILEGED_TASKID` raise if run without their declared fields. | a legal arm silently receives privileged data |
 | **L7** | *Probe non-interference.* Assert that evaluator audit probes leave episodic LRU order and every ledger counter unchanged. | the evaluator perturbs the system it measures |
 
 L3 deserves emphasis because it is the test that would catch a *subtle* leak.
 The others catch structural mistakes; L3 catches an information-theoretic one.
+
+### L5's criterion is comparative, and why
+
+The shuffle cannot destroy every regularity. Keys written earlier stay live
+longer and so are queried more often, which leaves a residual
+past-to-future query correlation (reported per seed by `scripts/audit_l5.py`).
+A router may legitimately exploit that residue, so L5 does **not** demand a zero
+advantage in the shuffled world. The preregistered criterion, fixed before the
+script was first run, is:
+
+> L5 passes iff the shuffled-world advantage over budget-matched random routing
+> is at most **0.25×** the real-world advantage, or its paired-bootstrap 95% CI
+> includes zero.
+
+Both advantages are measured the same way — `objective(LEARNED) −
+objective(RANDOM_MATCHED)` — each in its own world, each against a control
+matched to that world's own learned action histogram. A large surviving
+advantage would mean the router is winning for some reason other than genuine
+future utility, and would make the real-world result uninterpretable.
+
+L5 trains a second policy, so it is far more expensive than L1–L4/L6/L7. It runs
+separately (`make l5`) and caches its verdict together with the source-tree hash
+it was computed under; `scripts/audit_leakage.py` then verifies that the cached
+verdict exists, passes, and is current for the tree being audited.
 
 ## Gate
 

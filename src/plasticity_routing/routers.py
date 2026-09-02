@@ -22,7 +22,7 @@ from dataclasses import dataclass
 import numpy as np
 
 from .features import N_FEATURES
-from .substrates import EPISODIC, FAST, IGNORE, N_ACTIONS, SLOW
+from .substrates import ACTION_NAMES, EPISODIC, FAST, IGNORE, N_ACTIONS, SLOW
 
 
 class Router:
@@ -389,3 +389,73 @@ def constant_routers() -> dict[str, Router]:
         "ALL_FAST": ConstantRouter(FAST, "ALL_FAST"),
         "ALL_SLOW": ConstantRouter(SLOW, "ALL_SLOW"),
     }
+
+
+class ExtendedHeuristicRouter(Router):
+    """A richer fixed-rule family, for a *search-budget-matched* comparator.
+
+    The three-parameter `HeuristicRouter` is searched over 27 grid points, while
+    the learned policy gets thousands of ES rollouts over 340 continuous
+    parameters. Equal parameter counts are not achievable and not the point, but
+    equal *search effort* is, and a comparator given a hundredth of the search
+    budget is not a fair test.
+
+    This family adds knobs the three-parameter rule lacked -- in particular an
+    explicit durable-write rule with recurrence and query-evidence conditions,
+    and a budget guard -- so that a matched-budget search has somewhere to go.
+    Every input is still a whitelisted decision-time feature; nothing here sees
+    the hidden class.
+    """
+
+    name = "HEURISTIC_EXT"
+
+    def __init__(
+        self,
+        seen_threshold: int = 1,
+        revision_tolerance: float = 0.8,
+        error_floor: float = 0.25,
+        slow_recurrence: int = 3,
+        query_evidence: float = 1.0,
+        budget_guard: float = 0.2,
+        recurrent_default: int = EPISODIC,
+        novel_action: int = EPISODIC,
+    ):
+        self.seen_threshold = seen_threshold
+        self.revision_tolerance = revision_tolerance
+        self.error_floor = error_floor
+        self.slow_recurrence = slow_recurrence
+        self.query_evidence = query_evidence
+        self.budget_guard = budget_guard
+        self.recurrent_default = recurrent_default
+        self.novel_action = novel_action
+        self.n_params = N_FEATURES
+
+    def params(self) -> dict:
+        return {
+            "seen_threshold": self.seen_threshold,
+            "revision_tolerance": self.revision_tolerance,
+            "error_floor": self.error_floor,
+            "slow_recurrence": self.slow_recurrence,
+            "query_evidence": self.query_evidence,
+            "budget_guard": self.budget_guard,
+            "recurrent_default": ACTION_NAMES[self.recurrent_default],
+            "novel_action": ACTION_NAMES[self.novel_action],
+        }
+
+    def act(self, feats, rng, privileged=None) -> int:
+        from .features import FEATURE_NAMES
+
+        f = dict(zip(FEATURE_NAMES, feats))
+        scale = np.log(50.0)
+        times_seen = float(np.expm1(f["log_times_seen"] * scale))
+        times_queried = float(np.expm1(f["log_times_queried"] * scale))
+
+        if times_seen >= 1 and f["pred_error"] < self.error_floor:
+            return IGNORE                                  # already recalled well enough
+        if times_seen < self.seen_threshold:
+            return self.novel_action                       # unproven
+        if f["value_agreement"] < self.revision_tolerance:
+            return FAST                                    # value is being revised
+        if times_seen >= self.slow_recurrence and times_queried >= self.query_evidence:
+            return SLOW if f["write_budget_remaining"] > self.budget_guard else FAST
+        return self.recurrent_default

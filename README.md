@@ -119,19 +119,37 @@ The repository keeps its own failures, because they constrain the design:
    this mattered: fixing it and re-calibrating moved the headline contrast
    from −0.010 (CI spanning zero) to −0.019 (CI excluding zero), *against* the
    proposed method.
-6. **The first trainer could not see most of the objective** — per-decision
+6. **L5 fails.** Over half the learned router's advantage over budget-matched
+   random routing is reproduced in a world where future utility is pure noise
+   (ratio 0.52 against a 0.25 threshold). `RANDOM_MATCHED` matches only the
+   *marginal* action distribution, so conditional resource sense alone clears
+   it. The threshold has **not** been relaxed; the protocol is not frozen.
+7. **An ES initialisation override was a silent no-op**, voiding the first
+   durable-write discoverability diagnostic.
+8. **The comparator had been searched ~190× less hard** than the learned router
+   (81 rollouts vs 15,300).
+9. **The first trainer could not see most of the objective** — per-decision
    credit assignment misses resource cost by ~4 orders of magnitude, misses
    interference entirely, and cannot see budget exhaustion. Its development
    objective was flat across 60 epochs. Replaced by evolution strategies on the
    preregistered objective; the failed implementation is retained.
 
-Items 3–6 were found by this repository's own tests, controls, and calibration
+Items 3–9 were found by this repository's own tests, controls, and calibration
 sweeps rather than by inspection of results, which is what they are for.
 
-Development calibration currently indicates that **learned routing does not beat
-the calibrated fixed heuristic** (K1 fires), while **allocation content does
-matter** — a budget-matched random control with almost the same action mix
-scores 0.111 lower. Neither is confirmatory. See
+## Current status
+
+**Protocol v1.0 is not frozen, and the five confirmatory seeds have not been
+run.** Leakage test L5 fails, `scripts/freeze_protocol.py` lists it as a
+blocker, and `scripts/validate_runs.py` refuses to certify a confirmatory run
+without a frozen lock.
+
+Development-seed diagnostics — labelled invalid, and *not* evidence — currently
+show the learned router ahead of the matched-budget fixed rule (+0.082) after
+two corrections that ran in opposite directions: strengthening the comparator
+with a matched search budget (which shrank the gap) and selecting the policy
+seed on development data (which opened it). Policy-seed spread is 0.133, about
+ten times the entire effect of the ES budget. See
 [`experiments/EXP-000-RESULT.md`](experiments/EXP-000-RESULT.md).
 
 ## Layout

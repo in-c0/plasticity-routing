@@ -144,3 +144,75 @@ Pre-result design changes, recorded before any confirmatory result:
     optimal action), which would mean the declared four-action space was not
     justified by the benchmark. Admissibility now requires that every action be
     uniquely optimal for exactly one class.
+
+*   **2026-09-02, Amendment H — L5 failed, and the budget-matched random control
+    does not mean what EXP-000 said it meant.** Implementing the time-shuffled
+    control showed that the learned router's advantage over `RANDOM_MATCHED`
+    (+0.111) is *fully reproduced* in a world where future utility has been
+    randomised (+0.126, ratio 1.14 against a 0.25 threshold). In the shuffled
+    world the policy adopts a completely different profile — 72% `IGNORE` +
+    28% `SLOW`, versus 57% `EPISODIC` + 43% `FAST` in the real world — and still
+    beats its own matched control.
+
+    The conclusion is that `RANDOM_MATCHED` matches only the *marginal* action
+    distribution, so any policy with conditional resource sense beats it whether
+    or not it has learned anything about which items deserve which depth.
+    EXP-000's reading of K2 ("allocation content does matter") was therefore
+    wrong, and is corrected.
+
+    K2 is redefined around the **utility-attributable advantage**
+
+        A_util = [obj(LEARNED) − obj(RANDOM_MATCHED)]_real
+               − [obj(LEARNED) − obj(RANDOM_MATCHED)]_shuffled
+
+    which was **−0.015** at the configuration that produced EXP-000: essentially
+    zero. Both worlds train under an identical procedure and budget, so the
+    difference isolates the part of the advantage that depends on future utility
+    being predictable at all.
+
+*   **2026-09-02, Amendment I — the ES budget question, settled once.**
+    `scripts/es_budget_study.py` ran 200 generations at two policy seeds. Under
+    the rule fixed before running (no +0.004 improvement over a 40-generation
+    window), the mean running-best development objective plateaus at
+    **generation 86**; 60 → 100 generations is worth only +0.001, and 60 → 200
+    only +0.015. The budget is frozen at **100 generations** — a modest increase
+    with margin over the plateau, justified by convergence evidence rather than
+    by outcome.
+
+    The study also found the thing that actually mattered: **policy-seed
+    variance dwarfs the budget.** At 60 generations three initialisations
+    spanned 0.386 / 0.469 / 0.502 on the same development seeds, against a
+    heuristic at 0.405. EXP-000 reported policy seed 0 — the worst of the three
+    — so its K1 result was substantially an artefact of a single initialisation.
+    `POLICY_SEEDS = (0, 1, 2)` is now frozen, with the carried-forward policy
+    selected by **development** objective (`scripts/select_policy.py`).
+    Selecting by confirmatory performance would be seed-shopping and is
+    prohibited.
+
+*   **2026-09-02, Amendment J — the comparator gets a matched search budget.**
+    Selecting a policy seed on development data is only fair if the comparator
+    is searched as hard. The learned router consumes
+    `3 seeds × 100 generations × 51 rollouts = 15,300` development rollouts; the
+    three-parameter heuristic grid consumed 81. `ExtendedHeuristicRouter` adds
+    an explicit durable-write rule (recurrence and query-evidence conditions), a
+    budget guard, and configurable defaults — eight knobs, all decision-time
+    legal — and `scripts/search_heuristic_matched.py` searches it with the
+    **same 15,300 rollouts**. The primary comparator for H1 is the best legal
+    non-learned router found under that matched budget.
+
+*   **2026-09-02, Amendment K — an initialisation override was a silent no-op.**
+    The first durable-write discoverability diagnostic returned
+    "SLOW genuinely unhelpful", but `slow_primed` and `cloned` had produced
+    traces *identical* to the default initialisation. `train_router_es`
+    snapshotted the parameter vector ES optimises **before** applying
+    `init_bias` / `init_params`, so both overrides were discarded on the first
+    perturbation. The diagnostic's verdict was void. Fixed, and
+    `tests/test_routers.py` now asserts that each override changes the
+    generation-zero objective.
+
+    The random-initialisation arms of that run were unaffected and are
+    informative on their own: policy seed 2 reached 0.5015 while selecting
+    `SLOW` 13.9% of the time, close to the heuristic's 13.2%. So the durable
+    write is **reachable** under the frozen budget; seed 0 simply failed to find
+    it.
+

@@ -10,6 +10,7 @@ __version__ = "0.1.0"
 
 from .ledger import CostConfig, Ledger
 from .routers import (
+    ExtendedHeuristicRouter,
     HeuristicRouter,
     LearnedRouter,
     OracleRouter,
@@ -24,4 +25,5 @@ __all__ = [
     "CostConfig", "Ledger", "SubstrateBank", "SubstrateConfig", "ACTION_NAMES",
     "WorldConfig", "build_world", "CLASS_NAMES", "HeuristicRouter", "LearnedRouter",
     "OracleRouter", "PrivilegedTaskIdRouter", "RandomMatchedRouter", "constant_routers",
+    "ExtendedHeuristicRouter",
 ]

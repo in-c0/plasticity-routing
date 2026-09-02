@@ -82,17 +82,20 @@ def test_config_hash_distinguishes_configs():
 
 
 def _arm_set(seeds=(11,)):
-    from plasticity_routing.routers import HeuristicRouter, RandomMatchedRouter
+    from plasticity_routing.routers import (
+        ExtendedHeuristicRouter, HeuristicRouter, RandomMatchedRouter,
+    )
     import numpy as np
 
     out = []
     extra = {"HEURISTIC": HeuristicRouter(),
+             "HEURISTIC_EXT": ExtendedHeuristicRouter(),
              "RANDOM_MATCHED": RandomMatchedRouter(np.array([0.25] * 4)),
              "LEARNED": HeuristicRouter()}
     for seed in seeds:
         w = build_world(EXP001.world, seed=seed)
         for arm in ("ALL_IGNORE", "ALL_EPISODIC", "ALL_FAST", "ALL_SLOW",
-                    "HEURISTIC", "RANDOM_MATCHED", "LEARNED"):
+                    "HEURISTIC", "HEURISTIC_EXT", "RANDOM_MATCHED", "LEARNED"):
             router = constant_routers().get(arm) or extra[arm]
             res = rollout(w, router, EXP001.cost, EXP001.substrate, seed=seed)
             m = build_manifest(root=ROOT, classification="DEV_CALIBRATION", arm=arm,
