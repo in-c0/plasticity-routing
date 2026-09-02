@@ -414,7 +414,21 @@
           "writes_identical": true
         }
       ]
+    },
+    {
+      "id": "L5",
+      "name": "time_shuffled_control",
+      "passed": false,
+      "detail": {
+        "cached_passed": false,
+        "current_for_this_tree": false,
+        "ratio_shuffled_over_real": 0.5212373203562184,
+        "real_advantage": 0.2604192696869967,
+        "shuffled_advantage": 0.13574024230077353,
+        "cached_tree": "9eba5a3bd104627d8524f3e76a3a2b438928ea7ad7f5848113f86befcfe1525f",
+        "current_tree": "0c66fb4911152ba686ed3cab3c111451983580b9272401ef5473c1a784906081"
+      }
     }
   ],
-  "passed": true
+  "passed": false
 }
