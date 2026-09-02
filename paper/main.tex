@@ -1,0 +1,153 @@
+% Adaptive Plasticity Routing -- paper skeleton.
+%
+% PRE-RESULT DOCUMENT. Every results slot below is an explicit placeholder.
+% No number in this file may be written by hand: numbers are transcribed from
+% results/*.json manifests only after EXP-001 confirmatory runs are unblocked
+% by issue #1. A placeholder left un-filled is a drafting bug; a placeholder
+% filled with an invented number is misconduct.
+
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{xcolor}
+
+\newcommand{\TODO}[1]{\textcolor{red}{[\textbf{PLACEHOLDER:} #1]}}
+
+\title{Learning Where to Write:\\
+Resource-Aware Write-Depth Routing for Continual Agents}
+\author{\TODO{authors}}
+\date{Draft --- pre-result}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Continual agents are usually given a fixed pathway along which experience is
+committed to memory. We ask whether an agent can instead \emph{learn} which
+substrate a new experience should change, from delayed future task utility,
+under interference and storage/compute constraints. We formalise this as a
+resource-aware write-depth allocation problem over four actions
+(\textsc{ignore}, \textsc{episodic}, \textsc{fast}, \textsc{slow}), introduce a
+synthetic benchmark in which the optimal depth differs by hidden class and is
+unobservable at decision time, and evaluate a learned policy against
+depth-agnostic controls, a fixed heuristic, a budget-matched random control, and
+a class-conditional oracle upper bound derived by exhaustive search.
+\TODO{one-sentence result, positive or negative, transcribed from manifests}
+\end{abstract}
+
+\section{Introduction}
+
+\TODO{motivation}
+
+Our contribution is deliberately narrow. We do \emph{not} claim that routing to
+experts is new \cite{shazeer2017moe,fedus2021switch,zhou2025twolevel}, that
+using multiple memory systems is new
+\cite{behrouz2024titans,pattichis2026multitimescale,lampinen2025latent}, or that
+deciding whether to write to memory is new
+\cite{yan2025memoryr1,simsek2026forget,hu2026memrouter}. The question we isolate
+is whether a policy can learn a \emph{resource-aware write-depth} policy from
+future utility, and whether any gain is attributable to routing rather than to
+capacity, compute, or privileged task identity.
+
+\paragraph{Prior.} Our prior on a positive result is low. Yoon
+\cite{yoon2026subspace} reports that a simple similarity rule matches or beats a
+learned reinforcement-learning allocation controller under fixed capacity. We
+therefore treat a fixed heuristic as the primary comparator and preregister a
+negative replication as a publishable outcome.
+
+\section{Related work}
+
+\TODO{prose expansion of docs/LITERATURE.md; the distance from
+\cite{li2026duallayer} and \cite{zhang2026budgetmem} must be stated explicitly
+and must not be overstated}
+
+\section{Problem formulation}
+
+At each write event $t$ the agent observes $(k_t, v_t)$ and selects an action
+$a_t \in \{\textsc{ignore}, \textsc{episodic}, \textsc{fast}, \textsc{slow}\}$
+from a policy $\pi_\theta(a \mid \phi_t)$, where $\phi_t$ is a feature vector
+that is a function of the stream prefix only. The objective is
+\begin{equation}
+J = U - \lambda_f F - \lambda_s S - \lambda_w W - \lambda_c C,
+\end{equation}
+with $U$ mean per-query recall utility, $F$ retention regression measured by
+evaluator-only probes, and $S, W, C$ normalised storage, write, and compute
+consumption under a cost table and hard write ceiling shared by every arm.
+
+\section{Benchmark: SDW-1}
+
+\TODO{prose expansion of docs/BENCHMARK.md}
+
+The optimal class-conditional mapping is obtained by exhaustive search over all
+$4^4$ mappings on development seeds rather than asserted by the designer. The
+recovered optimum contradicts our design hypothesis, which we report as evidence
+that the ground truth was discovered rather than planted.
+
+\section{Method}
+
+\TODO{policy parameterisation; evolution strategies on the objective; why
+per-decision credit assignment fails here (resource cost is orders of magnitude
+below attributed utility, interference is not attributable, budget exhaustion is
+a trajectory property)}
+
+\section{Experimental protocol}
+
+\TODO{arms, seeds, budgets, validity gates, transcribed from
+experiments/EXP-001-PREREG.md}
+
+\section{Leakage controls}
+
+\TODO{L1--L7, including the first-encounter mutual-information test and its
+canary}
+
+\section{Results}
+
+\emph{This section is intentionally empty.} No confirmatory run has been
+executed. EXP-001 is gated on issue~\#1, and EXP-002 is additionally gated on
+review of the first mechanically valid \texttt{state-promotion} engineering
+pilot.
+
+\subsection{Main comparison}
+\TODO{Table: objective, task utility, forgetting, resource totals per arm, with
+paired-bootstrap 95\% CIs over five held-out confirmatory seeds}
+
+\subsection{Attribution}
+\TODO{Table: routing vs.\ budget-matched random vs.\ capacity-matched vs.\
+compute break-even vs.\ privileged task ID}
+
+\subsection{Diagnostics}
+\TODO{hidden-class $\times$ action confusion; per-class utility; action
+distribution over training}
+
+\section{Negative and null results}
+
+Development-stage findings preserved regardless of the final outcome:
+\begin{enumerate}
+  \item an assumed class-to-action mapping presented as an oracle was not an
+        upper bound and was beaten by the fixed heuristic;
+  \item the designed mapping was falsified by exhaustive search;
+  \item arrival time leaked the hidden class, caught by the first-encounter
+        independence test on an untrained policy;
+  \item an episodic cost model omitting key storage and search cost let a
+        capacity-matched exact store beat the oracle;
+  \item per-decision policy-gradient credit assignment could not see most of the
+        objective and did not train.
+\end{enumerate}
+
+\section{Limitations}
+
+The benchmark is synthetic and small. No language-model result is claimed.
+Substrate models are linear associative memories, so ``interference'' here is
+subspace overlap rather than anything a transformer does. The forgetting term is
+partially double-counted in task utility; we report sensitivity at
+$\lambda_f = 0$. \TODO{expand}
+
+\section{Conclusion}
+
+\TODO{written only after results exist}
+
+\bibliographystyle{plain}
+\bibliography{references}
+\end{document}

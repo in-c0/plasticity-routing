@@ -1,0 +1,13 @@
+cff-version: 1.2.0
+message: "If you use this software or experimental protocol, please cite the associated paper when available."
+title: "Adaptive Plasticity Routing"
+type: software
+version: 0.1.0
+date-released: 2026-09-02
+license: Apache-2.0
+repository-code: "https://github.com/in-c0/plasticity-routing"
+abstract: >-
+  Pre-result research scaffold for learned, resource-aware write-depth allocation
+  in continual agents. Investigates whether a policy can learn which substrate
+  should absorb a new experience, from delayed future utility, under interference
+  and storage/compute constraints. No empirical claim is made yet.
