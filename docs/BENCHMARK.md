@@ -104,6 +104,15 @@ a whole regime, so "fast" and "slow" cease to differ in persistence and one of
 the four actions becomes redundant. The frozen value `0.997` sits two grid steps
 away from that boundary, which is the required margin.
 
+The search was staged: a grid sweep (`scripts/calibrate_world.py`), then manual
+extension over `n_stable_keys`, `n_local_slots` and the fast-substrate
+parameters when that grid produced only non-bijective optima, then exhaustive
+mapping search, then the neighbourhood check above. The decisive change was
+making the stable key population *exceed* episodic capacity: until then the
+exact store could hold every stable fact and the durable parametric substrate
+had no role, so `SLOW` was never uniquely optimal and C5 could not be satisfied.
+`LearnedRouter` was never executed at any stage.
+
 ### The frozen configuration
 
 `key_dim=96`, `value_dim=16`, `lifetime=3000`, `regime_len=300`,

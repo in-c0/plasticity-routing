@@ -1,13 +1,26 @@
 """The frozen EXP-001 configuration.
 
-Selected by `scripts/calibrate_world.py` on **development seeds 11, 12, 13**
-using only the depth-agnostic controls, the fixed heuristic, and class-conditional
-ORACLE mappings. `LearnedRouter` was never executed during calibration, so the
-benchmark cannot have been tuned to favour the method under test.
+Provenance, all on **development seeds 11, 12, 13**:
 
-Confirmatory seeds are disjoint from the development seeds and are listed in
-`experiments/EXP-001-PREREG.md`. Changing anything in this module after protocol
-freeze requires a logged pre-result amendment.
+1. `scripts/calibrate_world.py` swept world/substrate parameters against the
+   admissibility criteria, using only the depth-agnostic controls, the fixed
+   heuristic, and class-conditional ORACLE mappings.
+2. That sweep's optima were non-bijective, so the search was extended by hand
+   over `n_stable_keys`, `n_local_slots`, `fast_lr` and `fast_decay` until an
+   admissible bijective configuration was found. The decisive change was making
+   the stable key population exceed episodic capacity, which is what gives the
+   durable parametric substrate a role that exact storage cannot fill.
+3. `routers.search_best_mapping(method="exhaustive")` derived the ORACLE mapping
+   over all 256 class-conditional mappings.
+4. `scripts/sensitivity.py` verified criterion C6 in the neighbourhood.
+5. `scripts/calibrate_heuristic.py` froze the heuristic at its grid argmax.
+
+`LearnedRouter` was **never executed** at any stage of 1-4, so the benchmark
+cannot have been tuned to favour the method under test. Step 5 tunes the
+*comparator*, in the direction that makes the test harder.
+
+Confirmatory seeds are disjoint from the development seeds. Changing anything in
+this module after protocol freeze requires a logged pre-result amendment.
 """
 
 from __future__ import annotations
