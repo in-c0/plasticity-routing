@@ -176,7 +176,14 @@ Nothing about H1: same-seed training and selection, three seeds, and a failing
 leakage control. Nothing about language models. Whether the `LOCAL`-heavy
 strategy survives on unseen seeds is unknown.
 
-## 10. Next
+## 10. Superseded by the confirmatory run
+
+EXP-001 confirmatory has since executed under protocol v1.2 and supports H1
+(K1 = +0.0907 [+0.0798, +0.1016]). This document is retained as the development
+record; its numbers are development-seed diagnostics and remain non-evidential.
+See [`EXP-001-RESULT.md`](EXP-001-RESULT.md).
+
+## 11. Next (at the time of writing)
 
 Protocol v1.0 **cannot be frozen** while L5 fails; `scripts/freeze_protocol.py`
 lists it as a blocker and `scripts/validate_runs.py` refuses to certify a

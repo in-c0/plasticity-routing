@@ -4,8 +4,11 @@
 experience across substrates of differing persistence — the **ALLOCATE** stage
 of CCS.
 
-> Status: **pre-result / experiment scaffold.** No empirical claim is made yet.
-> Everything in `results/` is classified `DEV_CALIBRATION` and is not evidence.
+> Status: **EXP-001 confirmatory complete.** H1 is supported on the five held-out
+> seeds under protocol v1.2. See
+> [`experiments/EXP-001-RESULT.md`](experiments/EXP-001-RESULT.md).
+> This is a claim about a synthetic benchmark; no language-model claim is made,
+> and EXP-002 remains blocked.
 
 ## The narrow claim
 
@@ -161,18 +164,29 @@ are neither training nor confirmatory:
 crossover — `R` wins on real, `S` wins on shuffled — so `R` is not simply a
 better network.
 
-## Current status
+## Confirmatory result
 
-**The five confirmatory seeds have not been run.** L5b passes and is now the
-attribution gate; L5a is retained as failed and non-gating.
+Executed once on the five held-out seeds, protocol v1.2, every gate passed in
+the preregistered order.
 
-Development-seed diagnostics — *not* evidence — show the learned router ahead of
-the matched-budget fixed rule (+0.082) after two corrections that ran in
-opposite directions: strengthening the comparator with a matched search budget
-(which shrank the gap) and selecting the policy seed on development data (which
-opened it). Policy-seed spread is 0.133, about ten times the entire effect of
-the ES budget. See
-[`experiments/EXP-000-RESULT.md`](experiments/EXP-000-RESULT.md).
+| contrast | estimate | 95% CI |
+|---|---|---|
+| **K1** `LEARNED − HEURISTIC_EXT` (matched search budget) | **+0.0907** | [+0.0798, +0.1016] |
+| **K2** `LEARNED − SHUFFLE_TRAINED` (attribution) | +0.4893 | [+0.4553, +0.5232] |
+| **K7** `LEARNED − CAPACITY_MATCHED` | +0.2577 | [+0.2430, +0.2753] |
+| **K9** `PRIVILEGED_TASKID − HEURISTIC` | −0.0003 | [−0.0008, −0.0000] |
+| `ORACLE − LEARNED` (headroom) | +0.0420 | [+0.0335, +0.0542] |
+
+**H1 supported.** K1 is positive on 5/5 individual seeds, and the development
+estimate (+0.0819) held on unseen seeds (+0.0907). `LEARNED` lands within 0.042
+of the class-conditional oracle ceiling using all four actions.
+
+The headline number is deliberately the *narrowest* one available: the
+comparator is the best fixed rule found under a search budget matched to the
+learned router's, rollout for rollout.
+
+Full result, including limitations and the one aborted execution attempt:
+[`experiments/EXP-001-RESULT.md`](experiments/EXP-001-RESULT.md).
 
 ## Layout
 

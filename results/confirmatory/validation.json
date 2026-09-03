@@ -1,0 +1,25 @@
+{
+  "passed": true,
+  "reasons": [],
+  "n_manifests": 65,
+  "arms": [
+    "ALL_EPISODIC",
+    "ALL_FAST",
+    "ALL_IGNORE",
+    "ALL_SLOW",
+    "CAPACITY_MATCHED_EPISODIC",
+    "DESIGNED_MAPPING",
+    "HEURISTIC",
+    "HEURISTIC_EXT",
+    "LEARNED",
+    "ORACLE",
+    "PRIVILEGED_TASKID",
+    "RANDOM_MATCHED",
+    "SHUFFLE_TRAINED"
+  ],
+  "classifications": [
+    "CONFIRMATORY"
+  ],
+  "lock": "protocol_v1.2_lock.json",
+  "lock_version": "1.2"
+}
