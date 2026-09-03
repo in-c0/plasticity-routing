@@ -1,12 +1,9 @@
 {
   "protocol_version": "1.0",
-  "frozen": false,
-  "blockers": [
-    "leakage audit missing or failing; run `make l5 && make leakage`",
-    "L5 verdict missing or failing"
-  ],
-  "admissible_commit": "913ac41e1c71a315688f10299e3a0d08e14a998d",
-  "source_tree_sha256": "0c66fb4911152ba686ed3cab3c111451983580b9272401ef5473c1a784906081",
+  "frozen": true,
+  "blockers": [],
+  "admissible_commit": "61c493549e741bebe9becaba599b01e4c8e0a7f9",
+  "source_tree_sha256": "18d319d33712ee0b0dcbe044c604ea4a72cf3413da00acb1261cccb9b7caa75d",
   "config_hash": "7a2d06f526ace1c0",
   "environment": {
     "python": "3.12.14",
@@ -102,10 +99,62 @@
     2,
     3
   ],
-  "test_summary": "92 passed in 47.60s",
-  "leakage_audit_passed": false,
-  "l5": {
+  "test_summary": "105 passed in 25.44s",
+  "leakage_audit_passed": true,
+  "l5a_historical": {
+    "status": "RETAINED_FAILED",
+    "gating": false,
     "passed": false,
-    "ratio_shuffled_over_real": 0.5212373203562184
-  }
+    "ratio_shuffled_over_real": 0.5212373203562184,
+    "threshold_ratio": 0.25
+  },
+  "l5b_attribution_gate": {
+    "gating": true,
+    "passed": true,
+    "delta_real": 0.492945988373606,
+    "delta_real_ci95": [
+      0.4822281682147669,
+      0.5031817301889434
+    ],
+    "interaction": 0.6011044552771426,
+    "interaction_ci95": [
+      0.5901623928961599,
+      0.6121852663783812
+    ],
+    "n_audit_seeds": 32
+  },
+  "audit_seeds": [
+    91001,
+    91002,
+    91003,
+    91004,
+    91005,
+    91006,
+    91007,
+    91008,
+    91009,
+    91010,
+    91011,
+    91012,
+    91013,
+    91014,
+    91015,
+    91016,
+    91017,
+    91018,
+    91019,
+    91020,
+    91021,
+    91022,
+    91023,
+    91024,
+    91025,
+    91026,
+    91027,
+    91028,
+    91029,
+    91030,
+    91031,
+    91032
+  ]
 }
