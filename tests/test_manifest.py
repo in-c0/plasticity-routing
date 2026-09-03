@@ -91,11 +91,13 @@ def _arm_set(seeds=(11,)):
     extra = {"HEURISTIC": HeuristicRouter(),
              "HEURISTIC_EXT": ExtendedHeuristicRouter(),
              "RANDOM_MATCHED": RandomMatchedRouter(np.array([0.25] * 4)),
-             "LEARNED": HeuristicRouter()}
+             "LEARNED": HeuristicRouter(),
+             "SHUFFLE_TRAINED": HeuristicRouter()}
     for seed in seeds:
         w = build_world(EXP001.world, seed=seed)
         for arm in ("ALL_IGNORE", "ALL_EPISODIC", "ALL_FAST", "ALL_SLOW",
-                    "HEURISTIC", "HEURISTIC_EXT", "RANDOM_MATCHED", "LEARNED"):
+                    "HEURISTIC", "HEURISTIC_EXT", "RANDOM_MATCHED", "LEARNED",
+                    "SHUFFLE_TRAINED"):
             router = constant_routers().get(arm) or extra[arm]
             res = rollout(w, router, EXP001.cost, EXP001.substrate, seed=seed)
             m = build_manifest(root=ROOT, classification="DEV_CALIBRATION", arm=arm,

@@ -13,7 +13,8 @@ import sys
 from pathlib import Path
 
 CLAIM_ARMS = {"ALL_IGNORE", "ALL_EPISODIC", "ALL_FAST", "ALL_SLOW",
-              "HEURISTIC", "HEURISTIC_EXT", "RANDOM_MATCHED", "LEARNED"}
+              "HEURISTIC", "HEURISTIC_EXT", "RANDOM_MATCHED", "LEARNED",
+              "SHUFFLE_TRAINED"}
 
 
 def validate(manifests: list[dict], tolerance: float = 0.02) -> dict:

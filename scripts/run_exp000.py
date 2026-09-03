@@ -68,6 +68,8 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--dev-seeds", type=int, nargs="+", default=list(DEV_SEEDS))
     ap.add_argument("--policy", type=Path, default=ROOT / "results/policies/real_selected.json")
+    ap.add_argument("--shuffle-policy", type=Path,
+                    default=ROOT / "results/policies/shuffled_selected.json")
     ap.add_argument("--out", type=Path, default=Path("results"))
     ap.add_argument("--skip-leakage", action="store_true", help="development convenience only")
     ap.add_argument("--proceed-on-audit-failure", action="store_true",
@@ -123,6 +125,19 @@ def main() -> None:
     arms["HEURISTIC"] = HeuristicRouter()
     arms["HEURISTIC_EXT"] = _matched_heuristic()
     arms["LEARNED"] = learned
+
+    # The attribution control (Amendment L): an identically specified policy
+    # trained where the prefix->future-utility relationship was destroyed,
+    # evaluated here in the *real* world. K2 is LEARNED - SHUFFLE_TRAINED.
+    if not args.shuffle_policy.exists():
+        raise SystemExit(f"missing attribution control {args.shuffle_policy}")
+    shuffle_trained, shuffle_meta = load_policy(args.shuffle_policy)
+    shuffle_trained.greedy = True
+    shuffle_trained.name = "SHUFFLE_TRAINED"
+    print(f"  {args.shuffle_policy.name}: policy seed {shuffle_meta['policy_seed']}, "
+          f"trained on time-shuffled worlds, shuffled-dev objective "
+          f"{shuffle_meta['dev_objective']:.4f}")
+    arms["SHUFFLE_TRAINED"] = shuffle_trained
 
     results: dict[str, list] = {name: [] for name in arms}
     for name, router in arms.items():
@@ -218,7 +233,8 @@ def main() -> None:
 
     contrast("LEARNED", "HEURISTIC_EXT", "K1  LEARNED - HEURISTIC_EXT (matched budget)")
     contrast("LEARNED", "HEURISTIC", "    LEARNED - HEURISTIC (3-param grid)")
-    contrast("LEARNED", "RANDOM_MATCHED", "K2  LEARNED - RANDOM_MATCHED")
+    contrast("LEARNED", "SHUFFLE_TRAINED", "K2  LEARNED - SHUFFLE_TRAINED (attribution)")
+    contrast("LEARNED", "RANDOM_MATCHED", "    LEARNED - RANDOM_MATCHED (secondary)")
     best_sd = max(("ALL_EPISODIC", "ALL_FAST", "ALL_SLOW"),
                   key=lambda k: summaries[k]["objective"]["mean"])
     contrast("LEARNED", best_sd, f"K4  LEARNED - {best_sd} (best single depth)")

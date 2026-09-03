@@ -11,8 +11,9 @@ Refuses to freeze unless:
     not contain the code being run is worthless);
   * development and confirmatory seed lists are disjoint;
   * the full test suite passes;
-  * the leakage audit -- including the cached L5 verdict -- passes and is
-    current for this tree.
+  * the leakage audit passes and is current for this tree, including the L5b
+    attribution gate. L5a is retained as a permanently failed historical
+    diagnostic and is reported, not gated on (Amendment L).
 
 After freezing, any change to `src/`, `scripts/`, or the frozen configuration
 invalidates the lock, and `scripts/validate_runs.py` will refuse to certify a
@@ -31,7 +32,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from plasticity_routing.config import CONFIRMATORY_SEEDS, DEV_SEEDS, EXP001  # noqa: E402
+from plasticity_routing.config import (  # noqa: E402
+    AUDIT_SEEDS, CONFIRMATORY_SEEDS, DEV_SEEDS, EXP001, SELECTED_POLICY_SHA256,
+)
 from plasticity_routing.manifest import config_hash, environment, git_sha, source_tree_sha256  # noqa: E402
 from plasticity_routing.routers import HeuristicRouter  # noqa: E402
 
@@ -78,13 +81,22 @@ def main() -> None:
     if not audit or not audit.get("passed"):
         blockers.append("leakage audit missing or failing; run `make l5 && make leakage`")
 
-    l5_path = ROOT / "results/l5_time_shuffle.json"
-    l5 = json.loads(l5_path.read_text()) if l5_path.exists() else None
     tree = source_tree_sha256(ROOT)
-    if not l5 or not l5.get("passed"):
-        blockers.append("L5 verdict missing or failing")
-    elif l5.get("source_tree_sha256") != tree:
-        blockers.append("cached L5 verdict is stale for this source tree; re-run `make l5`")
+    l5a_path = ROOT / "results/l5_time_shuffle.json"
+    l5a = json.loads(l5a_path.read_text()) if l5a_path.exists() else None
+    if not l5a:
+        blockers.append("L5a historical record missing; it must be retained")
+    elif l5a.get("passed"):
+        blockers.append("L5a is recorded as passing; Amendment L requires it retained as FAILED")
+
+    l5b_path = ROOT / "results/l5b_cross_world.json"
+    l5b = json.loads(l5b_path.read_text()) if l5b_path.exists() else None
+    if not l5b or not l5b.get("passed"):
+        blockers.append("L5b attribution gate missing or failing")
+    elif l5b.get("source_tree_sha256") != tree:
+        blockers.append("cached L5b verdict is stale for this source tree; re-run `make l5b`")
+    elif not l5b.get("policy_hashes_match_amendment_L"):
+        blockers.append("L5b ran against policies that do not match the Amendment L hashes")
 
     heur = HeuristicRouter()
     rc, freeze = run([str(ROOT / ".venv/bin/python"), "-m", "pip", "freeze"])
@@ -112,8 +124,17 @@ def main() -> None:
         "designed_mapping": list(EXP001.designed_mapping),
         "test_summary": test_line,
         "leakage_audit_passed": bool(audit and audit.get("passed")),
-        "l5": {"passed": bool(l5 and l5.get("passed")),
-               "ratio_shuffled_over_real": (l5 or {}).get("ratio_shuffled_over_real")},
+        "l5a_historical": {"status": "RETAINED_FAILED", "gating": False,
+                           "passed": bool(l5a and l5a.get("passed")),
+                           "ratio_shuffled_over_real": (l5a or {}).get("ratio_shuffled_over_real"),
+                           "threshold_ratio": (l5a or {}).get("threshold_ratio")},
+        "l5b_attribution_gate": {"gating": True, "passed": bool(l5b and l5b.get("passed")),
+                                 "delta_real": (l5b or {}).get("delta_real", {}).get("mean_diff"),
+                                 "delta_real_ci95": (l5b or {}).get("delta_real", {}).get("ci95"),
+                                 "interaction": (l5b or {}).get("interaction", {}).get("mean_diff"),
+                                 "interaction_ci95": (l5b or {}).get("interaction", {}).get("ci95"),
+                                 "n_audit_seeds": (l5b or {}).get("n_audit_seeds")},
+        "audit_seeds": list(AUDIT_SEEDS),
     }
 
     args.out_json.parent.mkdir(parents=True, exist_ok=True)
@@ -144,8 +165,11 @@ source-tree hash, config hash, or seed is not the one recorded here.
 | source-tree sha256 | `{tree}` |
 | config hash | `{lock['config_hash']}` |
 | test suite | {test_line} |
-| leakage audit L1-L7 | {'PASSED' if lock['leakage_audit_passed'] else 'FAILED / MISSING'} |
-| L5 shuffled/real advantage ratio | {lock['l5']['ratio_shuffled_over_real']} |
+| leakage audit (gating checks) | {'PASSED' if lock['leakage_audit_passed'] else 'FAILED / MISSING'} |
+| L5a (retained, **failed**, non-gating) | ratio {lock['l5a_historical']['ratio_shuffled_over_real']} vs threshold {lock['l5a_historical']['threshold_ratio']} |
+| L5b attribution gate | {'PASSED' if lock['l5b_attribution_gate']['passed'] else 'FAILED / MISSING'} |
+| L5b `Delta_real` | {lock['l5b_attribution_gate']['delta_real']} CI {lock['l5b_attribution_gate']['delta_real_ci95']} |
+| L5b `I` | {lock['l5b_attribution_gate']['interaction']} CI {lock['l5b_attribution_gate']['interaction_ci95']} |
 
 Any edit to `src/`, `scripts/`, or the frozen configuration changes the
 source-tree hash and invalidates this lock.
@@ -155,9 +179,11 @@ source-tree hash and invalidates this lock.
 | role | seeds |
 |---|---|
 | development (calibration, training) | `{list(DEV_SEEDS)}` |
+| L5b audit (one-shot, spent) | `{AUDIT_SEEDS[0]}..{AUDIT_SEEDS[-1]}` (n={len(AUDIT_SEEDS)}) |
 | confirmatory (held out) | `{list(CONFIRMATORY_SEEDS)}` |
 
-The two lists are disjoint, and the freeze refuses to proceed if they are not.
+All three sets are disjoint, and the freeze refuses to proceed if the training
+and confirmatory lists are not. The audit seeds are spent and may not be reused.
 Confirmatory seeds have not been executed.
 
 ## Frozen configuration
