@@ -16,10 +16,10 @@ _None. The protocol is frozen._
 
 | | |
 |---|---|
-| commit | `eceaa55d93c512ade354ed5ea49d51ea960caf99` |
+| commit | `faf0fb25fcb8283cd75b5ef84e475ad5ba250d87` |
 | source-tree sha256 | `52b39e60e91392ac0462a7fce4b0452e1deeafdae8ce8282ed1b04e578c54cfc` |
 | config hash | `7a2d06f526ace1c0` |
-| test suite | 113 passed, 18 skipped in 27.34s |
+| test suite | 131 passed in 28.82s |
 | leakage audit (gating checks) | PASSED |
 | L5a (retained, **failed**, non-gating) | ratio 0.5212373203562184 vs threshold 0.25 |
 | L5b attribution gate | PASSED |
