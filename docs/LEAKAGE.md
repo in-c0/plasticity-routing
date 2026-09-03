@@ -41,14 +41,60 @@ diagnostic and is classified `DEV_CALIBRATION`, never `CONFIRMATORY`.
 | **L2** | *Class-permutation invariance.* Permute hidden class labels while holding the observable stream fixed. Every legal router's decision sequence must be bit-identical. | a legal router's behaviour tracks permuted labels |
 | **L3** | *First-encounter independence.* SDW-1 makes classes observationally identical on first sight. Estimate the mutual information `I(hidden class ; action)` over first encounters, against a 500-fold permutation null. | MI exceeds the permutation null (p < 0.05) — the router "knows" a class it cannot yet distinguish |
 | **L4** | *Causal ordering / future blindness.* Re-run the router on a stream truncated after step `t`. Decisions up to `t` must be identical to the full-stream run. | any feature depends on the future |
-| **L5** | *Time-shuffled control.* Retrain in a world where each query's target key is redrawn uniformly from the keys already written at that moment. The write stream, query count, and query timing are byte-identical, so all budgets are unchanged; only the link between an item's observable prefix and whether it will be needed later is destroyed. | the router's advantage over budget-matched random routing survives the shuffle |
+| **L5a** | *Marginal-random time-shuffled control.* **RETAINED, PERMANENTLY FAILED.** Retrain in a world where each query's target key is redrawn uniformly from the keys already written at that moment. The write stream, query count, and query timing are byte-identical, so all budgets are unchanged; only the link between an item's observable prefix and whether it will be needed later is destroyed. | the router's advantage over budget-matched random routing survives the shuffle — which it did, at ratio 0.521 |
+| **L5b** | *Cross-world utility-shuffle negative control.* Compare the policy trained on real worlds (`R`) against an identically specified policy trained on time-shuffled worlds (`S`), on a fresh one-shot audit seed set. | `Delta_real` or the crossover interaction `I` fails to exclude zero on the positive side |
 | **L6** | *Privilege declaration.* Assert that the rollout engine passes `privileged=None` to every router with empty `privileged_fields`, and that `ORACLE`/`PRIVILEGED_TASKID` raise if run without their declared fields. | a legal arm silently receives privileged data |
 | **L7** | *Probe non-interference.* Assert that evaluator audit probes leave episodic LRU order and every ledger counter unchanged. | the evaluator perturbs the system it measures |
 
 L3 deserves emphasis because it is the test that would catch a *subtle* leak.
 The others catch structural mistakes; L3 catches an information-theoretic one.
 
-### L5's criterion is comparative, and why
+### L5a is retained as failed, and is not the attribution gate
+
+L5a's 0.25 ratio threshold has **not** been relaxed, and L5a has not been
+rewritten. It is preserved permanently as a failed diagnostic because its
+failure is informative in its own right.
+
+What it established is that **`RANDOM_MATCHED` cannot carry a causal-attribution
+claim.** That control preserves only the marginal `P(A)`; the learned router
+also has `P(A | X)`, and conditional resource sense alone — knowing *when* it is
+worth writing at all — clears the bar without knowing anything about which items
+deserve which depth. Measured: the learned router beat its own matched control
+by +0.136 in a world where future utility was pure noise.
+
+So L5a is a result about the adequacy of a control, not about the router. The
+attribution gate is **L5b**, which is a *stronger* null, not a weaker one: it
+holds the network, the features, the budget, the seeds and the selection rule
+fixed, and varies only whether training saw a real prefix→future-utility
+relationship.
+
+### L5b: the cross-world design
+
+`R` = policy trained on real development worlds. `S` = identically specified
+policy trained on time-shuffled development worlds. Both are already frozen
+artefacts, pinned by SHA-256 in `config.SELECTED_POLICY_SHA256`; the audit
+**loads** them and never retrains.
+
+|  | evaluated on real | evaluated on shuffled |
+|---|---|---|
+| policy `R` | `J_RR` | `J_RS` |
+| policy `S` | `J_SR` | `J_SS` |
+
+```
+Delta_real = J_RR - J_SR                      (primary)
+I          = (J_RR - J_SR) - (J_RS - J_SS)    (crossover interaction)
+```
+
+Gate: paired bootstrap at the audit-seed level over `AUDIT_SEEDS =
+91001..91032`; the 95% CI for **both** quantities must exclude zero on the
+positive side. Zero is the null; no ratio and no minimum effect size are
+introduced.
+
+The audit seeds are neither training nor confirmatory. Evaluating the cross on
+development seeds would be selection-biased, since `R` was selected for real-dev
+performance and `S` for shuffled-dev performance.
+
+### L5a's criterion was comparative, and why
 
 The shuffle cannot destroy every regularity. Keys written earlier stay live
 longer and so are queried more often, which leaves a residual

@@ -24,12 +24,27 @@ negative result here is a publishable outcome, not a failure to be retried.
 | ID | Fires when | Conclusion |
 |---|---|---|
 | **K1** | `LEARNED` does not exceed `HEURISTIC` by a paired-bootstrap 95% CI excluding zero | **learned routing adds nothing over a fixed rule.** This replicates Yoon (2026, arXiv:2606.30067) in a new setting and is reported as the headline result |
-| **K2** | the **utility-attributable advantage** `A_util` is not positive with a CI excluding zero | the gain does not depend on future utility being predictable, so it is not utility-driven routing |
+| **K2** | `LEARNED − SHUFFLE_TRAINED` is not positive with a paired 95% CI excluding zero | an identically specified policy trained without any prefix→future-utility relationship does just as well, so the advantage is not utility-driven routing |
 | **K7** | `LEARNED`'s advantage over `HEURISTIC` disappears under `CAPACITY_MATCHED` or under compute matching | the gain was capacity or compute, not routing |
 | **K9** | `PRIVILEGED_TASKID` − `HEURISTIC` ≥ `LEARNED` − `HEURISTIC` | privileged context identity explains as much as learned inference; the interesting quantity was never routing |
 | **K10** | the time-shuffled control (L5) still beats `RANDOM_MATCHED` | the router is exploiting structure other than genuine future utility |
 
-### Why K2 is defined on `A_util` and not on `LEARNED − RANDOM_MATCHED`
+### Why K2 is defined on `SHUFFLE_TRAINED`
+
+`RANDOM_MATCHED` preserves only the marginal `P(A)`. The learned router also has
+`P(A | X)`, and L5a measured that conditional resource sense alone beats the
+marginal control by +0.136 in a world where future utility is pure noise. A
+control that matches action frequencies therefore cannot carry a causal claim.
+
+`SHUFFLE_TRAINED` holds the network, the feature whitelist, the ES budget, the
+policy seeds and the selection rule fixed, and varies only whether training saw
+a real prefix→future-utility relationship. `LEARNED − SHUFFLE_TRAINED` is
+consequently the contrast that isolates the hypothesis.
+
+`RANDOM_MATCHED` and `A_util` are retained as **secondary diagnostics** and are
+still reported, but they no longer bear the attribution claim.
+
+### The superseded `A_util` framing
 
 `RANDOM_MATCHED` matches the learned router's *marginal* action distribution,
 not its conditional structure. Measured, that turns out to be far too weak a

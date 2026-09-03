@@ -45,6 +45,23 @@ POLICY_SEEDS = (0, 1, 2)
 #: Confirmatory seeds. Disjoint from DEV_SEEDS. Frozen before any confirmatory run.
 CONFIRMATORY_SEEDS = (20260902, 20260903, 20260904, 20260905, 20260906)
 
+#: One-shot audit seeds for the L5b cross-world negative control (Amendment L).
+#: Deliberately neither training nor confirmatory. R was selected for real-dev
+#: performance and S for shuffled-dev performance, so evaluating the cross on
+#: DEV_SEEDS would be selection-biased in R's favour; and spending confirmatory
+#: seeds on a validity gate would consume the held-out set before the experiment.
+#: Frozen, with the L5b criterion, before any cross-world number was inspected.
+AUDIT_SEEDS = tuple(range(91001, 91033))
+
+#: SHA-256 of the two selected policies as of Amendment L. The L5b audit loads
+#: these artefacts and must never retrain: retraining inside the audit would let
+#: the policies drift with the source tree and silently change what is being
+#: compared. `tests/test_l5b.py` asserts the files still hash to these values.
+SELECTED_POLICY_SHA256 = {
+    "real_selected.json": "7cdc29ecd7492a3c7a928d407cb87f39b04c19a9ce189ae81405d69adbaf9c40",
+    "shuffled_selected.json": "cf81b58a36c77ccd799c4862b02f383db31a23476a132b70d4450b6636c28dbe",
+}
+
 
 @dataclass(frozen=True)
 class ExperimentConfig:

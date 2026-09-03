@@ -22,8 +22,8 @@ mean objective than `HEURISTIC`, with a paired-bootstrap 95% CI on the
 difference excluding zero.
 
 **H2 (attribution).** Any H1 advantage is attributable to routing rather than to
-budget consumption, capacity, compute, or privileged context: `LEARNED` also
-beats `RANDOM_MATCHED`, survives `CAPACITY_MATCHED`, retains its advantage under
+budget consumption, capacity, compute, or privileged context: `LEARNED` beats
+`SHUFFLE_TRAINED` (K2), survives `CAPACITY_MATCHED`, retains its advantage under
 compute matching, and exceeds the advantage `PRIVILEGED_TASKID` obtains over
 `HEURISTIC`.
 
@@ -144,30 +144,92 @@ router's. Deliberately weakening the primary comparator is the most direct route
 to a manufactured positive result and is the thing this clause exists to
 prevent.
 
+## 8a. L5b preregistration (Amendment L, 2026-09-03)
+
+Fixed **before any cross-world number was inspected**.
+
+**Arms.** `R` = the selected policy trained on real development worlds
+(`results/policies/real_selected.json`, policy seed 2, dev objective 0.5209).
+`S` = `SHUFFLE_TRAINED`, the identically specified policy trained on
+time-shuffled development worlds (`shuffled_selected.json`, policy seed 0, dev
+objective 0.0198). Same network, same legal feature whitelist, same ES budget,
+same `POLICY_SEEDS`, same selection rule. Both are frozen artefacts pinned by
+SHA-256 in `config.SELECTED_POLICY_SHA256`; the audit loads them and **never
+retrains**.
+
+**Audit seeds.** `AUDIT_SEEDS = 91001..91032` (32 seeds), frozen in
+`config.py`, disjoint from both `DEV_SEEDS` and `CONFIRMATORY_SEEDS`, used
+**once**. The cross is *not* evaluated on development seeds: `R` was selected
+for real-dev performance and `S` for shuffled-dev performance, so that
+comparison would be selection-biased in `R`'s favour.
+
+**Cells.** For each audit seed, build the real world and its paired
+time-shuffled world, then evaluate both policies in both:
+
+```
+J_RR = J(R, real)      J_SR = J(S, real)
+J_RS = J(R, shuffled)  J_SS = J(S, shuffled)
+```
+
+All four cells use identical cost and substrate configurations.
+
+**Quantities.**
+
+```
+Delta_real = J_RR - J_SR                      (primary)
+I          = (J_RR - J_SR) - (J_RS - J_SS)    (crossover interaction)
+```
+
+**Method.** Paired bootstrap at the audit-seed level (20,000 resamples, fixed
+seed), as already implemented in `metrics.paired_bootstrap`. `I` is bootstrapped
+via the identity `I = (J_RR - J_RS) - (J_SR - J_SS)`, so the same paired
+estimator applies.
+
+**Pass rule.** L5b passes iff the 95% CI for **both** `Delta_real` and `I`
+excludes zero **on the positive side**. Zero is the null. No ratio threshold and
+no minimum effect size are introduced.
+
+**Consequences, fixed in advance.**
+
+*   **If L5b fails:** EXP-001 stops before confirmatory execution. The result is
+    published as a negative result — adaptive routing may outperform marginal
+    random allocation, but this experiment cannot establish that the advantage
+    arises from learning delayed future utility. **No L5c will be designed.**
+*   **If L5b passes:** L5a is retained as a failed historical diagnostic, L5b
+    becomes the attribution validity gate, the full leakage suite is re-run, and
+    only then may protocol v1.0 be frozen. Only after the lock succeeds may the
+    five confirmatory seeds be touched.
+
+**Confirmatory consequence.** `SHUFFLE_TRAINED` becomes a real arm and **K2
+becomes `LEARNED - SHUFFLE_TRAINED > 0`** with a paired 95% CI excluding zero.
+`RANDOM_MATCHED` and `A_util` are retained as secondary diagnostics only.
+
 ## 8b. Blocking status
 
-**Protocol v1.0 is NOT frozen.** Leakage test L5 fails at the frozen
-configuration: the learned router's advantage over `RANDOM_MATCHED` is +0.2604 in
+**Protocol v1.0 is NOT frozen.** Leakage test **L5a** fails at the frozen
+configuration, and is retained as failed: the learned router's advantage over `RANDOM_MATCHED` is +0.2604 in
 the real world and +0.1357 in the time-shuffled world, a ratio of 0.521 against
 the preregistered threshold of 0.25. The utility-attributable advantage
 `A_util = +0.1247` is clearly positive, but the criterion L5 was declared on is
 the ratio, and it has not been relaxed.
 
-Confirmatory execution is blocked until either
+**Resolution (Amendment L):** option 1. L5a's threshold is *not* revised. L5a
+established that `RANDOM_MATCHED` — which preserves only the marginal `P(A)` —
+cannot carry a causal-attribution claim, because the learned router's
+`P(A | X)` supplies generic resource management that clears the bar with no
+utility knowledge at all. The stronger control **L5b** (§8a) replaces it as the
+attribution gate. L5b is a stricter null, not a weaker one.
 
-1. a control stronger than `RANDOM_MATCHED` is introduced — matched on
-   conditional structure, not only on the marginal action distribution — and L5
-   is re-run against it; or
-2. L5's criterion is explicitly revised, justified, and logged as a pre-result
-   amendment **before** any confirmatory seed is executed.
-
-Whichever is chosen must be recorded before the confirmatory run, not after.
+Confirmatory execution remains blocked until L5b passes and protocol v1.0
+freezes.
 
 ## 9. Validity gates, in order
 
 Inspected in this order; comparative metrics last.
 
-1. leakage audit L1–L7 passes (`make l5 && make leakage`) — **currently failing at L5**;
+1. leakage audit passes (`make l5b && make leakage`): L1, L2, L3 + canary, L4,
+   L6, L7, and **L5b**. L5a is recorded as permanently failed and is reported,
+   not gated on;
 2. `scripts/validate_runs.py` certifies the manifest set;
 3. write ceiling respected by every arm; forced-ignore counts reported;
 4. benchmark admissibility C1–C6 still holds on confirmatory seeds;

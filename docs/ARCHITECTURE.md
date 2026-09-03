@@ -216,3 +216,82 @@ Pre-result design changes, recorded before any confirmatory result:
     write is **reachable** under the frozen budget; seed 0 simply failed to find
     it.
 
+*   **2026-09-03, Amendment L — L5a stays failed; L5b is a stronger null.**
+    (Letter `L`: `I` was already used for the ES-budget decision above, and
+    reusing it would corrupt this log.)
+
+    **L5a is retained permanently, unchanged, as FAILED** — ratio 0.521 against
+    a preregistered threshold of 0.25. The threshold is **not** relaxed and the
+    test is not deleted, rewritten, or reinterpreted.
+
+    What L5a falsified is worth stating precisely, because it is easy to
+    misread. It did **not** show that the learned router is exploiting a leak.
+    It showed that **`RANDOM_MATCHED` is an inadequate attribution control**:
+    it preserves only the marginal `P(A)`, whereas the learned router can
+    exploit `P(A | X)` for generic resource management that has nothing to do
+    with future utility. A control that only matches action frequencies cannot
+    separate "knows which items deserve which depth" from "knows when it is
+    worth writing at all". So L5a is a finding about the control, not about the
+    hypothesis — and it is exactly why the confirmatory run was blocked.
+
+    **L5b — cross-world utility-shuffle negative control.** Let `R` be the
+    policy trained on the real development worlds and `S` the *identically
+    specified* policy trained on the time-shuffled development worlds: same
+    `LearnedRouter`, same legal feature whitelist, same ES budget, same three
+    policy seeds, same selection rule. The single difference is whether training
+    preserved the prefix→future-utility relationship. This follows the standard
+    negative-control principle: the null retains every nuisance mechanism we
+    want to control for and removes only the hypothesised informative
+    relationship.
+
+    Evaluated as a 2x2 cross on a **fresh one-shot audit seed set**:
+
+        J_RR = J(R, real)      J_SR = J(S, real)
+        J_RS = J(R, shuffled)  J_SS = J(S, shuffled)
+
+    Primary quantity, and the crossover interaction:
+
+        Delta_real = J_RR - J_SR
+        I          = (J_RR - J_SR) - (J_RS - J_SS)
+
+    `Delta_real` asks the right question: on the identical real environment,
+    does training with genuine future-utility structure buy anything over an
+    otherwise identical router trained when that structure was destroyed? A
+    positive `I` says the difference is specifically tied to *matching* the
+    policy's training utility structure to the evaluation world's, rather than
+    `R` simply being a universally better network.
+
+    **Gate:** paired bootstrap at the audit-seed level; the 95% CI for **both**
+    `Delta_real` and `I` must exclude zero on the positive side. No new ratio,
+    and no minimum effect size chosen after seeing data — zero is the natural
+    null.
+
+    **Why not evaluate the cross on the development seeds.** `R` was selected
+    for real-dev performance and `S` for shuffled-dev performance, so a
+    development-seed cross is selection-biased in `R`'s favour. `AUDIT_SEEDS =
+    91001..91032` is frozen here, before any cross-world number is inspected,
+    and is neither a training nor a confirmatory set.
+
+    **Explicitly rejected alternatives.** (i) A router fitted to reproduce
+    `P(A | X)` from the real learned policy — that would clone precisely the
+    item-specific conditional structure under test. (ii) Partitioning the
+    fifteen features into "resource" and "utility" subsets — the whitelist mixes
+    key history, prediction error, memory occupancy, budget and time, and
+    choosing that partition *after* seeing L5a would be a fresh researcher
+    degree of freedom.
+
+    **Consequences, fixed in advance.** If L5b fails, EXP-001 stops before
+    confirmatory execution and the negative result is published: adaptive
+    routing may beat marginal random allocation, but the experiment cannot
+    establish that the advantage arises from learning delayed future utility.
+    **No L5c will be designed.** If L5b passes, L5a is retained as a failed
+    historical diagnostic, L5b becomes the attribution validity gate, the full
+    leakage suite is re-run, and only then may protocol v1.0 be frozen and the
+    confirmatory seeds touched.
+
+    In the confirmatory experiment `SHUFFLE_TRAINED` (= `S`) becomes a real arm
+    and **K2 becomes the paired contrast `LEARNED - SHUFFLE_TRAINED > 0`** with
+    a CI excluding zero. `RANDOM_MATCHED` and the `A_util` decomposition are
+    retained but **demoted to secondary diagnostics**; they no longer carry the
+    causal-attribution claim.
+
