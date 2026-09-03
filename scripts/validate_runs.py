@@ -17,7 +17,38 @@ CLAIM_ARMS = {"ALL_IGNORE", "ALL_EPISODIC", "ALL_FAST", "ALL_SLOW",
               "SHUFFLE_TRAINED"}
 
 
-def validate(manifests: list[dict], tolerance: float = 0.02) -> dict:
+def resolve_lock(lock_path: Path | None = None) -> tuple[Path | None, dict | None]:
+    """Find the protocol lock a CONFIRMATORY run must be checked against.
+
+    An explicit path wins. Otherwise the *highest-versioned frozen* lock is
+    used. Hard-coding `protocol_v1_lock.json` was a real defect: it silently
+    checked v1.1 manifests against v1.0's source-tree hash and rejected every
+    one of them.
+    """
+    root = Path(__file__).resolve().parents[1] / "results"
+    if lock_path is not None:
+        if not lock_path.exists():
+            return lock_path, None
+        return lock_path, json.loads(lock_path.read_text())
+
+    candidates = []
+    for p in sorted(root.glob("protocol_v*_lock.json")):
+        try:
+            d = json.loads(p.read_text())
+        except Exception:
+            continue
+        if d.get("frozen"):
+            ver = d.get("protocol_version", "0")
+            key = tuple(int(x) for x in str(ver).split(".") if x.isdigit())
+            candidates.append((key, p, d))
+    if not candidates:
+        return None, None
+    candidates.sort()
+    _, p, d = candidates[-1]
+    return p, d
+
+
+def validate(manifests: list[dict], tolerance: float = 0.02, lock_path: Path | None = None) -> dict:
     reasons: list[str] = []
     arms = {m["arm"] for m in manifests}
 
@@ -77,8 +108,7 @@ def validate(manifests: list[dict], tolerance: float = 0.02) -> dict:
     if "CONFIRMATORY" in classes and len(classes) > 1:
         reasons.append("mixed_confirmatory_and_non_confirmatory_manifests")
 
-    lock_path = Path(__file__).resolve().parents[1] / "results" / "protocol_v1_lock.json"
-    lock = json.loads(lock_path.read_text()) if lock_path.exists() else None
+    resolved_path, lock = resolve_lock(lock_path)
     for m in manifests:
         if m.get("classification") == "CONFIRMATORY":
             if not m.get("git_sha"):
@@ -104,13 +134,18 @@ def validate(manifests: list[dict], tolerance: float = 0.02) -> dict:
 
     return {"passed": not reasons, "reasons": reasons,
             "n_manifests": len(manifests), "arms": sorted(arms),
-            "classifications": sorted(c for c in classes if c)}
+            "classifications": sorted(c for c in classes if c),
+            "lock": str(resolved_path.name) if resolved_path else None,
+            "lock_version": (lock or {}).get("protocol_version")}
 
 
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("runs", nargs="+", type=Path)
     ap.add_argument("--out", type=Path, default=None)
+    ap.add_argument("--lock", type=Path, default=None,
+                    help="protocol lock to check CONFIRMATORY runs against "
+                         "(default: the highest-versioned frozen lock)")
     args = ap.parse_args()
 
     paths = [p for p in args.runs if p.exists()]
@@ -119,13 +154,15 @@ def main() -> None:
         sys.exit(2)
 
     manifests = [json.loads(p.read_text()) for p in paths]
-    result = validate(manifests)
+    result = validate(manifests, lock_path=args.lock)
     if args.out:
         args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text(json.dumps(result, indent=2) + "\n")
 
     print(f"manifests: {result['n_manifests']}  arms: {', '.join(result['arms'])}")
     print(f"classifications: {', '.join(result['classifications'])}")
+    if result.get("lock"):
+        print(f"lock: {result['lock']} (protocol v{result['lock_version']})")
     if result["passed"]:
         print("VALIDATION PASSED")
     else:

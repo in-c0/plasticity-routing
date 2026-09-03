@@ -34,24 +34,33 @@ runner = _load_runner()
 LOCK = ROOT / "results/protocol_v1.1_lock.json"
 
 
-def _lock_is_frozen() -> bool:
-    """A lock file that exists but is not frozen is a *failed* freeze attempt.
+def _lock_is_usable() -> bool:
+    """The lock must be frozen *and* current for this source tree.
 
-    These tests must gate on a genuinely frozen lock, not on the file's
-    presence -- otherwise a failed freeze writes an invalid lock, the tests then
-    fail against it, and the failing tests block the freeze. That circularity is
-    resolved by skipping until a real freeze succeeds, after which the
-    assertions below run for every subsequent test invocation.
+    Two circularities are avoided here. A failed freeze writes a lock with
+    `frozen: false`; gating on the file's presence would make these tests fail
+    against it, and the failures would then block the freeze. Equally, any
+    source edit makes an existing lock stale, and gating only on `frozen` would
+    make the suite fail until a re-freeze -- which itself requires a passing
+    suite. So these assertions skip whenever the lock is not currently
+    applicable, and run for every invocation once a freeze matching the tree
+    succeeds.
     """
     if not LOCK.exists():
         return False
     try:
-        return bool(json.loads(LOCK.read_text()).get("frozen"))
+        d = json.loads(LOCK.read_text())
     except Exception:
         return False
+    if not d.get("frozen"):
+        return False
+    from plasticity_routing.manifest import source_tree_sha256
+
+    return d.get("source_tree_sha256") == source_tree_sha256(ROOT)
 
 
-requires_lock = pytest.mark.skipif(not _lock_is_frozen(), reason="v1.1 lock not frozen")
+requires_lock = pytest.mark.skipif(
+    not _lock_is_usable(), reason="no frozen lock current for this source tree")
 
 
 def _lock_dict() -> dict:
@@ -306,3 +315,39 @@ def test_equivalence_comparison_ignores_container_type_only(tmp_path):
 
     assert canon((0.26, 0.26, 0.28, 0.2)) == canon([0.26, 0.26, 0.28, 0.2])
     assert canon((0.26, 0.26, 0.28, 0.2)) != canon([0.26, 0.26, 0.28, 0.3])
+
+
+# ---- lock resolution ------------------------------------------------------
+
+
+def test_validator_resolves_the_highest_versioned_frozen_lock():
+    """Hard-coding the v1.0 path silently checked v1.1 manifests against v1.0's
+    source-tree hash and rejected every one of them."""
+    import validate_runs
+
+    path, lock = validate_runs.resolve_lock()
+    assert path is not None and lock is not None
+    assert lock["frozen"] is True
+    versions = []
+    for p in (ROOT / "results").glob("protocol_v*_lock.json"):
+        d = json.loads(p.read_text())
+        if d.get("frozen"):
+            versions.append(tuple(int(x) for x in str(d["protocol_version"]).split(".")))
+    assert tuple(int(x) for x in lock["protocol_version"].split(".")) == max(versions)
+
+
+def test_validator_accepts_an_explicit_lock_path():
+    import validate_runs
+
+    p = ROOT / "results/protocol_v1_lock.json"
+    path, lock = validate_runs.resolve_lock(p)
+    assert path == p and lock["protocol_version"] == "1.0"
+
+
+@requires_lock
+def test_confirmatory_manifests_validate_against_the_active_lock():
+    """A manifest built now must certify against the lock the runner uses."""
+    import validate_runs
+
+    _, lock = validate_runs.resolve_lock()
+    assert lock["source_tree_sha256"], "active lock has no source-tree hash"

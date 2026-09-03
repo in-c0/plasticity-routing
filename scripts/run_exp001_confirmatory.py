@@ -254,8 +254,9 @@ def main() -> None:
 
     # ---- gate 2: manifest validation ------------------------------------
     print("\n-- gate 2: manifest validation --")
-    v = validate_manifests([m for _, _, m in manifests])
+    v = validate_manifests([m for _, _, m in manifests], lock_path=args.lock)
     print(f"  arms: {', '.join(v['arms'])}")
+    print(f"  checked against {v['lock']} (protocol v{v['lock_version']})")
     print(f"  {'PASSED' if v['passed'] else 'FAILED'}")
     if not v["passed"]:
         for r in v["reasons"]:
