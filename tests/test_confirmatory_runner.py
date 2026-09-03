@@ -240,3 +240,50 @@ def test_every_gate_raises_rather_than_warning():
     src = (ROOT / "scripts/run_exp001_confirmatory.py").read_text()
     head = src[: src.index("gates passed; comparative metrics")]
     assert head.count("raise Refusal") >= 6
+
+
+# ---- protocol equivalence -------------------------------------------------
+
+
+@requires_lock
+def test_v11_asserts_equivalence_to_v10_on_every_scientific_field():
+    """v1.1 must move no scientific goalpost relative to v1.0."""
+    v11 = _lock_dict()
+    eq = v11.get("equivalence")
+    assert eq is not None, "v1.1 was frozen without asserting equivalence"
+    assert eq["reference_version"] == "1.0"
+    assert eq["equivalent"] is True, f"differing fields: {eq['differing_fields']}"
+    for field in ("config_hash", "dev_seeds", "confirmatory_seeds", "audit_seeds",
+                  "world_config", "substrate_config", "cost_config", "es_config",
+                  "heuristic_params", "oracle_mapping", "designed_mapping"):
+        assert field in eq["fields_checked"], f"{field} was not checked"
+
+
+@requires_lock
+def test_v10_lock_is_preserved_unmodified():
+    """v1.0 is the historical freeze and must survive v1.1 verbatim."""
+    v10 = json.loads((ROOT / "results/protocol_v1_lock.json").read_text())
+    assert v10["protocol_version"] == "1.0"
+    assert v10["frozen"] is True
+    assert v10["admissible_commit"] == "61c493549e741bebe9becaba599b01e4c8e0a7f9"
+    assert v10["l5b_attribution_gate"]["passed"] is True
+    assert v10["l5a_historical"]["passed"] is False
+
+
+@requires_lock
+def test_v11_records_the_artefact_hashes_v10_did_not():
+    v11 = _lock_dict()
+    assert v11["selected_policy_sha256"] == dict(SELECTED_POLICY_SHA256)
+    assert v11["comparator_sha256"] == MATCHED_HEURISTIC_SHA256
+
+
+def test_equivalence_comparison_ignores_container_type_only(tmp_path):
+    """Tuples become lists across a JSON round-trip; that must not read as a
+    scientific difference, but a real value change must."""
+    import json as _json
+
+    def canon(x):
+        return _json.loads(_json.dumps(x, sort_keys=True, default=str))
+
+    assert canon((0.26, 0.26, 0.28, 0.2)) == canon([0.26, 0.26, 0.28, 0.2])
+    assert canon((0.26, 0.26, 0.28, 0.2)) != canon([0.26, 0.26, 0.28, 0.3])

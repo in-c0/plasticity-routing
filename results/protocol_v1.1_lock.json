@@ -1,0 +1,247 @@
+{
+  "protocol_version": "1.1",
+  "frozen": true,
+  "blockers": [
+    "protocol v1.1 differs from v1.0 on scientific fields: ['world_config']"
+  ],
+  "admissible_commit": "c847e552e5e1281d5a981c31a463d7dbce5daad1",
+  "source_tree_sha256": "904851a9e9f4537a0d6fa92e212ceedc3819ecf690ff0068dc350fb72507e3ae",
+  "config_hash": "7a2d06f526ace1c0",
+  "environment": {
+    "python": "3.12.14",
+    "numpy": "2.5.2",
+    "platform": "macOS-15.6-arm64-arm-64bit",
+    "machine": "arm64"
+  },
+  "dependencies": [
+    "Pygments==2.21.0",
+    "iniconfig==2.3.0",
+    "numpy==2.5.2",
+    "packaging==26.3",
+    "pluggy==1.6.0",
+    "pytest==9.1.1"
+  ],
+  "dev_seeds": [
+    11,
+    12,
+    13
+  ],
+  "confirmatory_seeds": [
+    20260902,
+    20260903,
+    20260904,
+    20260905,
+    20260906
+  ],
+  "world_config": {
+    "key_dim": 96,
+    "value_dim": 16,
+    "lifetime": 3000,
+    "regime_len": 300,
+    "n_stable_keys": 70,
+    "n_local_slots": 44,
+    "class_prior": [
+      0.26,
+      0.26,
+      0.28,
+      0.2
+    ],
+    "one_off_delay_min": 4,
+    "one_off_delay_max": 60,
+    "local_queries_per_presentation": 3,
+    "stable_queries_per_presentation": 3,
+    "stable_query_horizon": 2200,
+    "write_fraction": 0.55,
+    "activation_window": 1.0,
+    "value_noise": 0.05
+  },
+  "substrate_config": {
+    "key_dim": 96,
+    "value_dim": 16,
+    "episodic_capacity": 24,
+    "fast_decay": 0.997,
+    "fast_lr": 1.0,
+    "slow_lr": 0.7,
+    "slow_consolidation_steps": 4
+  },
+  "cost_config": {
+    "key_dim": 96,
+    "value_dim": 16,
+    "slow_write_multiplier": 4,
+    "write_element_ceiling": 3000000,
+    "storage_element_ceiling": null,
+    "lam_forget": 0.5,
+    "lam_storage": 0.1,
+    "lam_write": 0.1,
+    "lam_compute": 0.05
+  },
+  "es_config": {
+    "generations": 100,
+    "population": 24,
+    "sigma": 0.12,
+    "lr": 0.06,
+    "hidden": 16,
+    "seeds_per_generation": 2,
+    "weight_decay": 0.002
+  },
+  "heuristic_params": {
+    "seen_threshold": 1,
+    "revision_tolerance": 0.8,
+    "error_floor": 0.25
+  },
+  "oracle_mapping": [
+    0,
+    2,
+    1,
+    3
+  ],
+  "designed_mapping": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "test_summary": "110 passed, 14 skipped in 29.04s",
+  "leakage_audit_passed": true,
+  "l5a_historical": {
+    "status": "RETAINED_FAILED",
+    "gating": false,
+    "passed": false,
+    "ratio_shuffled_over_real": 0.5212373203562184,
+    "threshold_ratio": 0.25
+  },
+  "l5b_attribution_gate": {
+    "gating": true,
+    "passed": true,
+    "delta_real": 0.492945988373606,
+    "delta_real_ci95": [
+      0.4822281682147669,
+      0.5031817301889434
+    ],
+    "interaction": 0.6011044552771426,
+    "interaction_ci95": [
+      0.5901623928961599,
+      0.6121852663783812
+    ],
+    "n_audit_seeds": 32
+  },
+  "audit_seeds": [
+    91001,
+    91002,
+    91003,
+    91004,
+    91005,
+    91006,
+    91007,
+    91008,
+    91009,
+    91010,
+    91011,
+    91012,
+    91013,
+    91014,
+    91015,
+    91016,
+    91017,
+    91018,
+    91019,
+    91020,
+    91021,
+    91022,
+    91023,
+    91024,
+    91025,
+    91026,
+    91027,
+    91028,
+    91029,
+    91030,
+    91031,
+    91032
+  ],
+  "selected_policy_sha256": {
+    "real_selected.json": "7cdc29ecd7492a3c7a928d407cb87f39b04c19a9ce189ae81405d69adbaf9c40",
+    "shuffled_selected.json": "cf81b58a36c77ccd799c4862b02f383db31a23476a132b70d4450b6636c28dbe"
+  },
+  "comparator_sha256": "3ef29dd377193e8fa873c5e3b130f749046f7b1dfb21dc099fc7bb6633bb3791",
+  "equivalence": {
+    "reference": "protocol_v1_lock.json",
+    "reference_version": "1.0",
+    "fields_checked": [
+      "config_hash",
+      "dev_seeds",
+      "confirmatory_seeds",
+      "audit_seeds",
+      "world_config",
+      "substrate_config",
+      "cost_config",
+      "es_config",
+      "heuristic_params",
+      "oracle_mapping",
+      "designed_mapping"
+    ],
+    "differing_fields": {
+      "world_config": {
+        "reference": {
+          "key_dim": 96,
+          "value_dim": 16,
+          "lifetime": 3000,
+          "regime_len": 300,
+          "n_stable_keys": 70,
+          "n_local_slots": 44,
+          "class_prior": [
+            0.26,
+            0.26,
+            0.28,
+            0.2
+          ],
+          "one_off_delay_min": 4,
+          "one_off_delay_max": 60,
+          "local_queries_per_presentation": 3,
+          "stable_queries_per_presentation": 3,
+          "stable_query_horizon": 2200,
+          "write_fraction": 0.55,
+          "activation_window": 1.0,
+          "value_noise": 0.05
+        },
+        "current": {
+          "key_dim": 96,
+          "value_dim": 16,
+          "lifetime": 3000,
+          "regime_len": 300,
+          "n_stable_keys": 70,
+          "n_local_slots": 44,
+          "class_prior": [
+            0.26,
+            0.26,
+            0.28,
+            0.2
+          ],
+          "one_off_delay_min": 4,
+          "one_off_delay_max": 60,
+          "local_queries_per_presentation": 3,
+          "stable_queries_per_presentation": 3,
+          "stable_query_horizon": 2200,
+          "write_fraction": 0.55,
+          "activation_window": 1.0,
+          "value_noise": 0.05
+        }
+      }
+    },
+    "equivalent": false,
+    "admitted_deltas": {
+      "admissible_commit": [
+        "61c493549e741bebe9becaba599b01e4c8e0a7f9",
+        "c847e552e5e1281d5a981c31a463d7dbce5daad1"
+      ],
+      "source_tree_sha256": [
+        "18d319d33712ee0b0dcbe044c604ea4a72cf3413da00acb1261cccb9b7caa75d",
+        "904851a9e9f4537a0d6fa92e212ceedc3819ecf690ff0068dc350fb72507e3ae"
+      ],
+      "newly_recorded": [
+        "selected_policy_sha256",
+        "comparator_sha256"
+      ]
+    }
+  }
+}

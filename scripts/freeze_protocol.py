@@ -177,8 +177,20 @@ def main() -> None:
             blockers.append(f"reference lock {args.assert_equivalent_to} not found")
         else:
             ref = json.loads(args.assert_equivalent_to.read_text())
+
+            def canon(x):
+                """Normalise through JSON before comparing.
+
+                The reference lock has been through a JSON round-trip, so its
+                tuples are lists; the in-memory lock still has tuples. Comparing
+                raw would report `class_prior` as differing when the values are
+                identical. Normalising both sides keeps the check strict about
+                values while ignoring container type.
+                """
+                return json.loads(json.dumps(x, sort_keys=True, default=str))
+
             diffs = {f: {"reference": ref.get(f), "current": lock.get(f)}
-                     for f in SCIENTIFIC_FIELDS if ref.get(f) != lock.get(f)}
+                     for f in SCIENTIFIC_FIELDS if canon(ref.get(f)) != canon(lock.get(f))}
             equivalence = {
                 "reference": str(args.assert_equivalent_to.name),
                 "reference_version": ref.get("protocol_version"),
