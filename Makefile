@@ -1,4 +1,4 @@
-.PHONY: test exp000 leakage l5 l5b validate calib freeze clean
+.PHONY: test exp000 leakage l5 l5b confirmatory validate calib freeze clean
 
 PY := .venv/bin/python
 PYTEST := .venv/bin/pytest
@@ -17,6 +17,9 @@ l5b:
 
 exp000:
 	PYTHONPATH=src $(PY) scripts/run_exp000.py --dev-seeds 11 12 13 --out results
+
+confirmatory:
+	PYTHONPATH=src $(PY) -u scripts/run_exp001_confirmatory.py
 
 validate:
 	PYTHONPATH=src $(PY) scripts/validate_runs.py results/run_*.json --out results/validation.json

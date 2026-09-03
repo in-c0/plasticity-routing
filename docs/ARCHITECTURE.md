@@ -295,3 +295,49 @@ Pre-result design changes, recorded before any confirmatory result:
     retained but **demoted to secondary diagnostics**; they no longer carry the
     causal-attribution claim.
 
+*   **2026-09-03, Amendment M — confirmatory execution harness only.**
+
+    **This amendment changes no scientific degree of freedom.** No change to the
+    world, substrate or cost configuration; the objective or its weights; the
+    action space; the router architecture; either policy checkpoint; the
+    comparator; any threshold; any seed list; or any statistic. It adds an
+    executable path that enforces what protocol v1.0 already claims, and pins
+    two artefacts that v1.0 relied on but did not fingerprint.
+
+    **Why it was needed.** The only runner that existed, `run_exp000.py`,
+    hard-codes `classification="DEV_CALIBRATION"` and takes seeds from the
+    command line. Running the confirmatory arm through it would have produced
+    manifests that describe themselves as non-evidential development
+    calibration, on whatever seeds were typed. `validate_runs.py` was already
+    written to enforce a real `CONFIRMATORY` classification against the frozen
+    lock — nothing was there to produce one.
+
+    **What it adds.**
+
+    *   `scripts/run_exp001_confirmatory.py`: takes its seeds *only* from the
+        frozen lock (there is no seed CLI), writes only `CONFIRMATORY`
+        manifests, to a separate output directory, after verifying the commit,
+        source-tree hash, config hash, both policy hashes and the comparator
+        hash. It refuses to run on development or audit seeds, refuses if any
+        artefact has drifted, and refuses a second execution unless invoked in
+        read-only reproduce mode.
+    *   `MATCHED_HEURISTIC_SHA256` in `config.py`, pinning the comparator
+        artefact exactly as `SELECTED_POLICY_SHA256` pins the policies. Both
+        live under `results/`, which is deliberately outside the source-tree
+        fingerprint, so their identity is pinned *in source* and verified at run
+        time.
+    *   Protocol **v1.1**, frozen alongside v1.0 rather than overwriting it.
+        v1.0 is preserved verbatim as the historical freeze. v1.1 asserts
+        field-by-field equivalence with v1.0 on every scientific field —
+        config hash, all three seed lists, world/substrate/cost configuration,
+        ES configuration, heuristic parameters, and both mappings. The only
+        admitted deltas are the commit, the source-tree hash, and the two newly
+        recorded artefact hashes.
+
+    **Reveal order is enforced by the runner, not by discipline.** Comparative
+    metrics are computed but withheld until the leakage audit, manifest
+    validation, resource/ceiling checks, benchmark admissibility C1–C6 and the
+    invalidating criteria K3–K6/K8 have all passed. If an invalidating gate
+    fires the runner stops before the headline comparison is printed or
+    aggregated.
+

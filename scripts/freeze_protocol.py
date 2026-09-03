@@ -33,7 +33,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from plasticity_routing.config import (  # noqa: E402
-    AUDIT_SEEDS, CONFIRMATORY_SEEDS, DEV_SEEDS, EXP001, SELECTED_POLICY_SHA256,
+    AUDIT_SEEDS, CONFIRMATORY_SEEDS, DEV_SEEDS, EXP001, MATCHED_HEURISTIC_SHA256,
+    SELECTED_POLICY_SHA256,
 )
 from plasticity_routing.manifest import config_hash, environment, git_sha, source_tree_sha256  # noqa: E402
 from plasticity_routing.routers import HeuristicRouter  # noqa: E402
@@ -48,10 +49,14 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--version", default="1.0")
     ap.add_argument("--skip-tests", action="store_true", help="development convenience only")
-    ap.add_argument("--out-json", type=Path, default=ROOT / "results/protocol_v1_lock.json")
+    ap.add_argument("--out-json", type=Path, default=None)
+    ap.add_argument("--assert-equivalent-to", type=Path, default=None,
+                    help="path to an earlier lock that must match on every scientific field")
     ap.add_argument("--out-md", type=Path, default=None)
     args = ap.parse_args()
     out_md = args.out_md or ROOT / f"experiments/PROTOCOL-v{args.version}.md"
+    suffix = "v1" if args.version == "1.0" else f"v{args.version}"
+    args.out_json = args.out_json or ROOT / f"results/protocol_{suffix}_lock.json"
 
     blockers: list[str] = []
 
@@ -98,6 +103,23 @@ def main() -> None:
     elif not l5b.get("policy_hashes_match_amendment_L"):
         blockers.append("L5b ran against policies that do not match the Amendment L hashes")
 
+    # Artefacts the comparison depends on that live outside the source-tree
+    # fingerprint. Their identity is pinned in `config.py` (which *is* inside
+    # the fingerprint) and verified here.
+    import hashlib
+
+    artefacts = {}
+    for name, expected in SELECTED_POLICY_SHA256.items():
+        path = ROOT / "results/policies" / name
+        actual = hashlib.sha256(path.read_bytes()).hexdigest() if path.exists() else None
+        artefacts[name] = actual
+        if actual != expected:
+            blockers.append(f"policy artefact {name} does not match its pinned hash")
+    comp_path = ROOT / "results/heuristic_matched_search.json"
+    comp_hash = hashlib.sha256(comp_path.read_bytes()).hexdigest() if comp_path.exists() else None
+    if comp_hash != MATCHED_HEURISTIC_SHA256:
+        blockers.append("comparator artefact does not match its pinned hash")
+
     heur = HeuristicRouter()
     rc, freeze = run([str(ROOT / ".venv/bin/python"), "-m", "pip", "freeze"])
     deps = sorted(x for x in freeze.splitlines() if x and not x.startswith("-e"))
@@ -135,13 +157,70 @@ def main() -> None:
                                  "interaction_ci95": (l5b or {}).get("interaction", {}).get("ci95"),
                                  "n_audit_seeds": (l5b or {}).get("n_audit_seeds")},
         "audit_seeds": list(AUDIT_SEEDS),
+        "selected_policy_sha256": artefacts,
+        "comparator_sha256": comp_hash,
     }
+
+    # -- equivalence with an earlier protocol version ---------------------
+    #
+    # A new protocol version must not quietly move a scientific goalpost. Every
+    # field below defines what the experiment *is*; only the code identity and
+    # newly recorded artefact hashes may differ.
+    SCIENTIFIC_FIELDS = (
+        "config_hash", "dev_seeds", "confirmatory_seeds", "audit_seeds",
+        "world_config", "substrate_config", "cost_config", "es_config",
+        "heuristic_params", "oracle_mapping", "designed_mapping",
+    )
+    equivalence = None
+    if args.assert_equivalent_to:
+        if not args.assert_equivalent_to.exists():
+            blockers.append(f"reference lock {args.assert_equivalent_to} not found")
+        else:
+            ref = json.loads(args.assert_equivalent_to.read_text())
+            diffs = {f: {"reference": ref.get(f), "current": lock.get(f)}
+                     for f in SCIENTIFIC_FIELDS if ref.get(f) != lock.get(f)}
+            equivalence = {
+                "reference": str(args.assert_equivalent_to.name),
+                "reference_version": ref.get("protocol_version"),
+                "fields_checked": list(SCIENTIFIC_FIELDS),
+                "differing_fields": diffs,
+                "equivalent": not diffs,
+                "admitted_deltas": {
+                    "admissible_commit": [ref.get("admissible_commit"),
+                                          lock.get("admissible_commit")],
+                    "source_tree_sha256": [ref.get("source_tree_sha256"),
+                                           lock.get("source_tree_sha256")],
+                    "newly_recorded": [f for f in ("selected_policy_sha256", "comparator_sha256")
+                                       if f not in ref],
+                },
+            }
+            if diffs:
+                blockers.append(
+                    f"protocol v{args.version} differs from "
+                    f"v{ref.get('protocol_version')} on scientific fields: {sorted(diffs)}")
+    lock["equivalence"] = equivalence
 
     args.out_json.parent.mkdir(parents=True, exist_ok=True)
     args.out_json.write_text(json.dumps(lock, indent=2, default=str) + "\n")
 
     blockers_md = ("\n".join(f"- {b}" for b in blockers)
                    if blockers else "_None. The protocol is frozen._")
+    if equivalence is None:
+        equiv_md = "_No reference version asserted._"
+    elif equivalence["equivalent"]:
+        equiv_md = (
+            f"Asserted **equivalent** to protocol "
+            f"v{equivalence['reference_version']} (`{equivalence['reference']}`) on every "
+            f"scientific field:\n\n"
+            + "\n".join(f"- `{f}`" for f in equivalence["fields_checked"])
+            + "\n\nAdmitted deltas: the admissible commit, the source-tree hash, and newly "
+              f"recorded artefact hashes {equivalence['admitted_deltas']['newly_recorded']}. "
+              "No world, objective, action space, architecture, checkpoint, comparator, "
+              "threshold, seed or statistic changed."
+        )
+    else:
+        equiv_md = ("**NOT equivalent** to the reference version. Differing fields: "
+                    f"`{sorted(equivalence['differing_fields'])}`")
     dep_md = "\n".join(f"    {d}" for d in deps)
     md = f"""# Protocol v{args.version}
 
@@ -207,6 +286,10 @@ World, substrate and cost configurations are recorded in full in the JSON lock.
 Resolved dependencies:
 
 {dep_md}
+
+## Equivalence with the previous protocol version
+
+{equiv_md}
 
 ## What may not change after this point
 

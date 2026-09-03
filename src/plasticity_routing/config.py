@@ -62,6 +62,14 @@ SELECTED_POLICY_SHA256 = {
     "shuffled_selected.json": "cf81b58a36c77ccd799c4862b02f383db31a23476a132b70d4450b6636c28dbe",
 }
 
+#: SHA-256 of the matched-budget comparator artefact
+#: (`results/heuristic_matched_search.json`), whose `best_params` define
+#: `HEURISTIC_EXT`. Pinned at Amendment M for the same reason as the policies:
+#: the comparator is an input to the confirmatory comparison, it lives outside
+#: the source-tree fingerprint, and a silent change to it would alter what H1 is
+#: measured against.
+MATCHED_HEURISTIC_SHA256 = "3ef29dd377193e8fa873c5e3b130f749046f7b1dfb21dc099fc7bb6633bb3791"
+
 
 @dataclass(frozen=True)
 class ExperimentConfig:
