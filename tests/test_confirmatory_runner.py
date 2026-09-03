@@ -31,7 +31,27 @@ def _load_runner():
 
 
 runner = _load_runner()
-LOCK = ROOT / "results/protocol_v1.1_lock.json"
+def _active_lock() -> Path:
+    """The lock the runner would use: highest-versioned frozen lock.
+
+    Hard-coding a version here would silently stop testing the lock that is
+    actually in force the moment a new protocol version is frozen.
+    """
+    best, best_key = ROOT / "results/protocol_v1_lock.json", ()
+    for p in (ROOT / "results").glob("protocol_v*_lock.json"):
+        try:
+            d = json.loads(p.read_text())
+        except Exception:
+            continue
+        if not d.get("frozen"):
+            continue
+        key = tuple(int(x) for x in str(d.get("protocol_version", "0")).split(".") if x.isdigit())
+        if key > best_key:
+            best, best_key = p, key
+    return best
+
+
+LOCK = _active_lock()
 
 
 def _lock_is_usable() -> bool:
@@ -274,13 +294,23 @@ def test_every_gate_raises_rather_than_warning():
 
 
 @requires_lock
-def test_v11_asserts_equivalence_to_v10_on_every_scientific_field():
-    """v1.1 must move no scientific goalpost relative to v1.0."""
+def test_active_protocol_asserts_equivalence_back_to_v10():
+    """No protocol version may move a scientific goalpost, transitively."""
     v11 = _lock_dict()
     eq = v11.get("equivalence")
     assert eq is not None, "v1.1 was frozen without asserting equivalence"
-    assert eq["reference_version"] == "1.0"
     assert eq["equivalent"] is True, f"differing fields: {eq['differing_fields']}"
+    # Equivalence must chain all the way back to v1.0, so no intermediate
+    # version could have moved a goalpost.
+    seen, ref = [], eq
+    cur = _lock_dict()
+    while ref is not None:
+        seen.append(cur["protocol_version"])
+        assert ref["equivalent"] is True, f"{cur['protocol_version']} broke equivalence"
+        prev = ROOT / "results" / ref["reference"]
+        cur = json.loads(prev.read_text())
+        ref = cur.get("equivalence")
+    assert cur["protocol_version"] == "1.0", f"chain did not reach v1.0: {seen}"
     for field in ("config_hash", "dev_seeds", "confirmatory_seeds", "audit_seeds",
                   "world_config", "substrate_config", "cost_config", "es_config",
                   "heuristic_params", "oracle_mapping", "designed_mapping"):
@@ -299,7 +329,7 @@ def test_v10_lock_is_preserved_unmodified():
 
 
 @requires_lock
-def test_v11_records_the_artefact_hashes_v10_did_not():
+def test_active_lock_records_the_artefact_hashes_v10_did_not():
     v11 = _lock_dict()
     assert v11["selected_policy_sha256"] == dict(SELECTED_POLICY_SHA256)
     assert v11["comparator_sha256"] == MATCHED_HEURISTIC_SHA256
