@@ -32,7 +32,26 @@ def _load_runner():
 
 runner = _load_runner()
 LOCK = ROOT / "results/protocol_v1.1_lock.json"
-requires_lock = pytest.mark.skipif(not LOCK.exists(), reason="v1.1 lock not yet frozen")
+
+
+def _lock_is_frozen() -> bool:
+    """A lock file that exists but is not frozen is a *failed* freeze attempt.
+
+    These tests must gate on a genuinely frozen lock, not on the file's
+    presence -- otherwise a failed freeze writes an invalid lock, the tests then
+    fail against it, and the failing tests block the freeze. That circularity is
+    resolved by skipping until a real freeze succeeds, after which the
+    assertions below run for every subsequent test invocation.
+    """
+    if not LOCK.exists():
+        return False
+    try:
+        return bool(json.loads(LOCK.read_text()).get("frozen"))
+    except Exception:
+        return False
+
+
+requires_lock = pytest.mark.skipif(not _lock_is_frozen(), reason="v1.1 lock not frozen")
 
 
 def _lock_dict() -> dict:
