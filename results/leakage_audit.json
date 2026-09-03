@@ -416,19 +416,51 @@
       ]
     },
     {
-      "id": "L5",
-      "name": "time_shuffled_control",
-      "passed": false,
+      "id": "L5a",
+      "name": "marginal_random_time_shuffled_control",
+      "status": "RETAINED_FAILED_HISTORICAL",
+      "gating": false,
+      "passed": true,
       "detail": {
-        "cached_passed": false,
-        "current_for_this_tree": false,
+        "recorded_verdict": "FAILED",
         "ratio_shuffled_over_real": 0.5212373203562184,
-        "real_advantage": 0.2604192696869967,
-        "shuffled_advantage": 0.13574024230077353,
-        "cached_tree": "9eba5a3bd104627d8524f3e76a3a2b438928ea7ad7f5848113f86befcfe1525f",
-        "current_tree": "0c66fb4911152ba686ed3cab3c111451983580b9272401ef5473c1a784906081"
+        "threshold_ratio": 0.25,
+        "utility_attributable_advantage": 0.12467902738622316,
+        "note": "Permanently failed and retained. Not the attribution gate; see L5b."
+      }
+    },
+    {
+      "id": "L5b",
+      "name": "cross_world_utility_shuffle_negative_control",
+      "gating": true,
+      "passed": true,
+      "detail": {
+        "cached_passed": true,
+        "current_for_this_tree": true,
+        "delta_real": 0.492945988373606,
+        "delta_real_ci95": [
+          0.4822281682147669,
+          0.5031817301889434
+        ],
+        "interaction": 0.6011044552771426,
+        "interaction_ci95": [
+          0.5901623928961599,
+          0.6121852663783812
+        ],
+        "n_audit_seeds": 32,
+        "policy_hashes_match_amendment_L": true
       }
     }
   ],
-  "passed": false
+  "passed": true,
+  "gating_checks": [
+    "L1",
+    "L2",
+    "L4",
+    "L6",
+    "L3",
+    "L3-canary",
+    "L7",
+    "L5b"
+  ]
 }

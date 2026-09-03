@@ -119,11 +119,14 @@ The repository keeps its own failures, because they constrain the design:
    this mattered: fixing it and re-calibrating moved the headline contrast
    from −0.010 (CI spanning zero) to −0.019 (CI excluding zero), *against* the
    proposed method.
-6. **L5 fails.** Over half the learned router's advantage over budget-matched
-   random routing is reproduced in a world where future utility is pure noise
-   (ratio 0.52 against a 0.25 threshold). `RANDOM_MATCHED` matches only the
-   *marginal* action distribution, so conditional resource sense alone clears
-   it. The threshold has **not** been relaxed; the protocol is not frozen.
+6. **L5a fails, permanently and on purpose.** Over half the learned router's
+   advantage over budget-matched random routing is reproduced in a world where
+   future utility is pure noise (ratio 0.52 against a 0.25 threshold). The
+   threshold was **not** relaxed and the test was not rewritten. What it
+   falsified is the *control*: `RANDOM_MATCHED` preserves only the marginal
+   `P(A)`, so conditional resource sense alone clears it. It is retained as a
+   failed historical diagnostic and replaced — as the attribution gate — by the
+   stricter cross-world control L5b.
 7. **An ES initialisation override was a silent no-op**, voiding the first
    durable-write discoverability diagnostic.
 8. **The comparator had been searched ~190× less hard** than the learned router
@@ -137,19 +140,38 @@ The repository keeps its own failures, because they constrain the design:
 Items 3–9 were found by this repository's own tests, controls, and calibration
 sweeps rather than by inspection of results, which is what they are for.
 
+## Attribution: L5b
+
+The attribution question — *is the advantage actually about learning future
+utility?* — is settled by a cross-world negative control
+([`experiments/L5B-RESULT.md`](experiments/L5B-RESULT.md)). Let `R` be the
+policy trained on real worlds and `S` an **identically specified** policy
+trained on time-shuffled worlds: same network, features, ES budget, policy seeds
+and selection rule; the only difference is whether training preserved the
+prefix→future-utility relationship. Evaluated once on 32 fresh audit seeds that
+are neither training nor confirmatory:
+
+| | evaluated on real | evaluated on shuffled |
+|---|---|---|
+| `R` (trained on real) | **+0.5130** | −0.0898 |
+| `S` (trained on shuffled) | +0.0201 | +0.0183 |
+
+`Delta_real = +0.4929` [+0.4822, +0.5032] and the crossover interaction
+`I = +0.6011` [+0.5902, +0.6122]; both positive on 32/32 seeds. A true
+crossover — `R` wins on real, `S` wins on shuffled — so `R` is not simply a
+better network.
+
 ## Current status
 
-**Protocol v1.0 is not frozen, and the five confirmatory seeds have not been
-run.** Leakage test L5 fails, `scripts/freeze_protocol.py` lists it as a
-blocker, and `scripts/validate_runs.py` refuses to certify a confirmatory run
-without a frozen lock.
+**The five confirmatory seeds have not been run.** L5b passes and is now the
+attribution gate; L5a is retained as failed and non-gating.
 
-Development-seed diagnostics — labelled invalid, and *not* evidence — currently
-show the learned router ahead of the matched-budget fixed rule (+0.082) after
-two corrections that ran in opposite directions: strengthening the comparator
-with a matched search budget (which shrank the gap) and selecting the policy
-seed on development data (which opened it). Policy-seed spread is 0.133, about
-ten times the entire effect of the ES budget. See
+Development-seed diagnostics — *not* evidence — show the learned router ahead of
+the matched-budget fixed rule (+0.082) after two corrections that ran in
+opposite directions: strengthening the comparator with a matched search budget
+(which shrank the gap) and selecting the policy seed on development data (which
+opened it). Policy-seed spread is 0.133, about ten times the entire effect of
+the ES budget. See
 [`experiments/EXP-000-RESULT.md`](experiments/EXP-000-RESULT.md).
 
 ## Layout

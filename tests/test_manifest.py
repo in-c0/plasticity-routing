@@ -72,6 +72,18 @@ def test_source_tree_hash_is_deterministic_and_content_sensitive(tmp_path):
     assert source_tree_sha256(tmp_path) != h1
 
 
+def test_generated_protocol_markdown_is_excluded_from_the_source_hash(tmp_path):
+    """The freeze writes PROTOCOL-v*.md. If the fingerprint covered it, every
+    freeze would invalidate the audit verdicts it had just verified."""
+    (tmp_path / "experiments").mkdir()
+    (tmp_path / "a.py").write_text("x = 1\n")
+    before = source_tree_sha256(tmp_path)
+    (tmp_path / "experiments" / "PROTOCOL-v1.0.md").write_text("# generated\n")
+    assert source_tree_sha256(tmp_path) == before
+    (tmp_path / "experiments" / "EXP-001-PREREG.md").write_text("# real source\n")
+    assert source_tree_sha256(tmp_path) != before
+
+
 def test_config_hash_distinguishes_configs():
     from dataclasses import replace
     other = replace(EXP001.world, lifetime=EXP001.world.lifetime + 1)

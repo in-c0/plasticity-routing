@@ -467,8 +467,8 @@
   "delta_real_excludes_zero_positive": true,
   "interaction_excludes_zero_positive": true,
   "passed": true,
-  "git_sha": "63463e771eb2d5c573c356419b85d1c159fa4b7f",
-  "source_tree_sha256": "01ffd207cd745e47ece39deaeb166e5a766347f1ad8c73c138ddda4d422372b6",
+  "git_sha": "d3f86a606bec774049be64916f3eed34c2708f7c",
+  "source_tree_sha256": "18d319d33712ee0b0dcbe044c604ea4a72cf3413da00acb1261cccb9b7caa75d",
   "environment": {
     "python": "3.12.14",
     "numpy": "2.5.2",

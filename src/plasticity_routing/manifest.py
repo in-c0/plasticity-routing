@@ -22,8 +22,18 @@ SCHEMA_VERSION = "plasticity-routing/manifest/1"
 CLASSIFICATIONS = ("SMOKE", "DEV_CALIBRATION", "ENGINEERING_PILOT", "CONFIRMATORY")
 
 
+#: Generated artefacts excluded from the source fingerprint. `PROTOCOL-v*.md` is
+#: *written by* the freeze, so including it would make every freeze invalidate
+#: the very audit verdicts it just checked.
+_GENERATED = ("PROTOCOL-v",)
+
+
 def source_tree_sha256(root: Path) -> str:
-    """Deterministic fingerprint of every tracked .py/.md/.toml under `root`."""
+    """Deterministic fingerprint of the source tree.
+
+    Covers `.py`, `.md`, `.toml` and `.cff` files, excluding the virtualenv, git
+    metadata, the `results/` output directory, and generated artefacts.
+    """
     h = hashlib.sha256()
     paths = sorted(
         p for p in root.rglob("*")
@@ -32,6 +42,7 @@ def source_tree_sha256(root: Path) -> str:
         and ".venv" not in p.parts
         and ".git" not in p.parts
         and "results" not in p.parts
+        and not p.name.startswith(_GENERATED)
     )
     for p in paths:
         h.update(str(p.relative_to(root)).encode())
