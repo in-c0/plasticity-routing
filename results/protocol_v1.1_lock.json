@@ -2,7 +2,7 @@
   "protocol_version": "1.1",
   "frozen": true,
   "blockers": [],
-  "admissible_commit": "4474e7f4dee0b9bdf2380b03ba74a72b0f8405b3",
+  "admissible_commit": "3b64d84d84ed70bb4f41da521387a82d77f35151",
   "source_tree_sha256": "e5d5e62e0d271ec77e502c57cde42096fdd067aaed475e385db457d15efe014f",
   "config_hash": "7a2d06f526ace1c0",
   "environment": {
@@ -99,7 +99,7 @@
     2,
     3
   ],
-  "test_summary": "111 passed, 17 skipped in 25.01s",
+  "test_summary": "128 passed in 24.75s",
   "leakage_audit_passed": true,
   "l5a_historical": {
     "status": "RETAINED_FAILED",
@@ -183,7 +183,7 @@
     "admitted_deltas": {
       "admissible_commit": [
         "61c493549e741bebe9becaba599b01e4c8e0a7f9",
-        "4474e7f4dee0b9bdf2380b03ba74a72b0f8405b3"
+        "3b64d84d84ed70bb4f41da521387a82d77f35151"
       ],
       "source_tree_sha256": [
         "18d319d33712ee0b0dcbe044c604ea4a72cf3413da00acb1261cccb9b7caa75d",
