@@ -231,6 +231,17 @@ Pure NumPy, CPU only, no GitHub Actions.
     imposes seven pre-result constraints on any LM design. See
     [`experiments/EXP-002-DESIGN.md`](experiments/EXP-002-DESIGN.md).
 
+*   **EXP-003 — Allocation × Internal-Commitment Factorial. DESIGN ONLY, NOT
+    ADOPTED.** The smallest factorial that separates ALLOCATE from
+    COMMIT_INTERNAL: `SLOW` leaves the allocation action space, and durability is
+    reached only through a schedule-only commitment operator. This is the shape
+    gap that stops EXP-001 from settling CCS-C4 — in EXP-001, choosing `SLOW`
+    *is* committing, so no arm can hold commitment fixed. Not preregistered, not
+    executed, no seed drawn, no code written. See
+    [`experiments/EXP-003-DESIGN.md`](experiments/EXP-003-DESIGN.md) and the
+    draft protocol in
+    [`experiments/EXP-003-PREREG-DRAFT.md`](experiments/EXP-003-PREREG-DRAFT.md).
+
 ### Historical
 
 *   **EXP-000 — development calibration.** Harness smoke test on SDW-1. Trains
