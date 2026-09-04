@@ -129,9 +129,12 @@ precedent.
 | development | `EXP-003-dev-seeds-v1` | TO BE DERIVED |
 | confirmatory | `EXP-003-confirmatory-seeds-v1` | TO BE DERIVED |
 
-Both must be verified disjoint from `DEV_SEEDS`, `POLICY_SEEDS`, `AUDIT_SEEDS`,
-`CONFIRMATORY_SEEDS` and `REPLICATION_SEEDS`, with a test that re-derives and
-compares. Confirmatory seed count: TO BE FROZEN, not fewer than the 5 used by
+Both must be verified disjoint from **every other seed set declared in
+`config.py`** — enumerated programmatically rather than listed by name, since
+that module gains seed sets as tracks are added (EXP-002's substrate-sufficiency
+sets arrived on `main` at `9c2ddc3` while this document was being drafted). A
+test must re-derive and compare against the full enumeration, so a later seed set
+cannot silently overlap. Confirmatory seed count: TO BE FROZEN, not fewer than the 5 used by
 EXP-001, and EXP-001R's reasoning — that five seeds and 20,000 bootstrap
 resamples do not make an effect broadly established — argues for more.
 
