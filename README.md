@@ -218,16 +218,25 @@ Pure NumPy, CPU only, no GitHub Actions.
 
 ## Experiment sequence
 
+*   **EXP-001 — confirmatory synthetic. COMPLETE, H1 supported.** Five held-out
+    seeds, protocol v1.2. Paper:
+    [`paper/main.tex`](paper/main.tex). Result:
+    [`experiments/EXP-001-RESULT.md`](experiments/EXP-001-RESULT.md).
+*   **EXP-001R — replication on 32 untouched seeds. Preregistered, not run.**
+    Frozen policy, comparator and configuration unchanged; raises the
+    inferential sample from 5 to 32. See
+    [`experiments/EXP-001R-PREREG.md`](experiments/EXP-001R-PREREG.md).
+*   **EXP-002 — language model. Gate review SATISFIED; design may begin;
+    execution NOT authorized.** The State Promotion pilot has been reviewed and
+    imposes seven pre-result constraints on any LM design. See
+    [`experiments/EXP-002-DESIGN.md`](experiments/EXP-002-DESIGN.md).
+
+### Historical
+
 *   **EXP-000 — development calibration.** Harness smoke test on SDW-1. Trains
     and evaluates on development seeds, so it is **not evidence**. See
     [`experiments/EXP-000-RESULT.md`](experiments/EXP-000-RESULT.md).
-*   **EXP-001 — confirmatory synthetic.** Train on development seeds, evaluate
-    on five held-out confirmatory seeds. Gated on issue #1. Preregistered in
-    [`experiments/EXP-001-PREREG.md`](experiments/EXP-001-PREREG.md).
-*   **EXP-002 — language model. BLOCKED.** Must not run until the first
-    mechanically valid `in-c0/state-promotion` engineering pilot has been
-    reviewed, so that EXP-001 here does not bake in a defect that pilot
-    discovers.
+    Preregistration: [`experiments/EXP-001-PREREG.md`](experiments/EXP-001-PREREG.md).
 
 ## Relation to CCS and sibling tracks
 

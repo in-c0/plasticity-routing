@@ -120,3 +120,37 @@ EXP001 = ExperimentConfig(
     oracle_mapping=(IGNORE, FAST, EPISODIC, SLOW),
     designed_mapping=(IGNORE, EPISODIC, FAST, SLOW),
 )
+
+
+#: Label from which the EXP-001R replication seeds are derived. Deriving them
+#: from a fixed string rather than typing a list makes their provenance
+#: machine-checkable: nobody can claim afterwards that the list was chosen to
+#: suit a result. `tests/test_config_seeds.py` re-derives and compares.
+REPLICATION_SEED_LABEL = "EXP-001R-replication-seeds-v1"
+REPLICATION_SEED_COUNT = 32
+
+
+def derive_seeds(label: str, count: int, lo: int = 40_000_000, hi: int = 49_999_999) -> tuple[int, ...]:
+    """Deterministically derive `count` distinct seeds from `label`.
+
+    The range is chosen to be disjoint from every seed set already in use
+    (development, audit, confirmatory), and disjointness is asserted by tests
+    rather than assumed.
+    """
+    import hashlib
+
+    out: list[int] = []
+    i = 0
+    span = hi - lo + 1
+    while len(out) < count:
+        digest = hashlib.sha256(f"{label}:{i}".encode()).digest()
+        v = lo + (int.from_bytes(digest[:8], "big") % span)
+        if v not in out:
+            out.append(v)
+        i += 1
+    return tuple(out)
+
+
+#: EXP-001R replication seeds. Untouched: not development, not audit, not
+#: confirmatory. Frozen before the replication runs.
+REPLICATION_SEEDS = derive_seeds(REPLICATION_SEED_LABEL, REPLICATION_SEED_COUNT)

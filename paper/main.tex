@@ -1,24 +1,20 @@
-% Adaptive Plasticity Routing -- paper skeleton.
+% Adaptive Plasticity Routing -- EXP-001 paper.
 %
-% PRE-RESULT DOCUMENT. Every results slot below is an explicit placeholder.
-% No number in this file may be written by hand: numbers are transcribed from
-% results/*.json manifests only after EXP-001 confirmatory runs are unblocked
-% by issue #1. A placeholder left un-filled is a drafting bug; a placeholder
-% filled with an invented number is misconduct.
+% Every number in this file is transcribed from results/confirmatory/ and
+% results/l5b_cross_world.json. No number is written by hand. The confirmatory
+% experiment ran once, under protocol v1.2, on five held-out seeds.
 
 \documentclass[11pt]{article}
 \usepackage[margin=1in]{geometry}
 \usepackage{amsmath,amssymb}
 \usepackage{booktabs}
 \usepackage{hyperref}
-\usepackage{xcolor}
-
-\newcommand{\TODO}[1]{\textcolor{red}{[\textbf{PLACEHOLDER:} #1]}}
 
 \title{Learning Where to Write:\\
-Resource-Aware Write-Depth Routing for Continual Agents}
-\author{\TODO{authors}}
-\date{Draft --- pre-result}
+A Controlled Proof-of-Principle for Resource-Aware\\
+Write-Depth Routing in Continual Agents}
+\author{Ava Kim}
+\date{2026-09-04}
 
 \begin{document}
 \maketitle
@@ -27,126 +23,359 @@ Resource-Aware Write-Depth Routing for Continual Agents}
 Continual agents are usually given a fixed pathway along which experience is
 committed to memory. We ask whether an agent can instead \emph{learn} which
 substrate a new experience should change, from delayed future task utility,
-under interference and storage/compute constraints. We formalise this as a
-resource-aware write-depth allocation problem over four actions
-(\textsc{ignore}, \textsc{episodic}, \textsc{fast}, \textsc{slow}), introduce a
-synthetic benchmark in which the optimal depth differs by hidden class and is
-unobservable at decision time, and evaluate a learned policy against
-depth-agnostic controls, a fixed heuristic, a budget-matched random control, and
-a class-conditional oracle upper bound derived by exhaustive search.
-\TODO{one-sentence result, positive or negative, transcribed from manifests}
+under interference and storage/compute constraints. We formalise this as
+resource-aware write-depth allocation over four actions --- \textsc{ignore},
+\textsc{episodic}, \textsc{fast} and \textsc{slow} --- and introduce SDW-1, a
+synthetic stream in which four hidden classes genuinely deserve different
+storage depths and are observationally identical on first encounter. On five
+held-out seeds, a policy reading only decision-time-legal features beats the
+best fixed rule found under an \emph{equal search budget} by
+$+0.0907$ $[+0.0798, +0.1016]$, positive on 5/5 seeds, landing $0.042$ below a
+class-conditional oracle ceiling. A cross-world negative control shows the
+advantage depends on training having seen a genuine prefix-to-future-utility
+relationship: an identically specified policy trained where that relationship
+was destroyed scores $+0.0201$ against $+0.5130$ on the same worlds, and the
+crossover interaction is $+0.6011$ $[+0.5902, +0.6122]$. We report this as a
+\emph{controlled proof-of-principle on one synthetic benchmark with five seeds},
+not as a broad empirical demonstration, and we make no language-model claim.
 \end{abstract}
 
 \section{Introduction}
 
-\TODO{motivation}
+A continual learner must decide not only \emph{what} to learn but \emph{where}
+the change should land. Most systems answer that question by construction: a
+designer fixes the pathway --- write to an external store, or fine-tune, or
+consolidate on a schedule --- and the agent's only freedom is whether and how
+much. This paper asks whether the destination itself can be learned.
 
-Our contribution is deliberately narrow. We do \emph{not} claim that routing to
-experts is new \cite{shazeer2017moe,fedus2021switch,zhou2025twolevel}, that
-using multiple memory systems is new
-\cite{behrouz2024titans,pattichis2026multitimescale,lampinen2025latent}, or that
-deciding whether to write to memory is new
-\cite{yan2025memoryr1,simsek2026forget,hu2026memrouter}. The question we isolate
-is whether a policy can learn a \emph{resource-aware write-depth} policy from
-future utility, and whether any gain is attributable to routing rather than to
-capacity, compute, or privileged task identity.
+The contribution is deliberately narrow. We do \emph{not} claim that routing to
+experts is new; sparsely-gated mixture-of-experts routing is a decade-old line
+\cite{shazeer2017moe,fedus2021switch,zhou2025twolevel,guo2026stablerouting}. We
+do not claim that using multiple memory systems is new; complementary learning
+systems and multi-timescale memory are long established, with recent instances
+in \cite{behrouz2024titans,pattichis2026multitimescale,tiwari2026fastslow} and
+the clearest statement of \emph{why} the systems are complementary in
+\cite{lampinen2025latent}. We do not claim that deciding whether to write to
+memory is new \cite{yan2025memoryr1,simsek2026forget,hu2026memrouter,jaber2026memoir}.
 
-\paragraph{Prior.} Our prior on a positive result is low. Yoon
+The question we isolate is whether a policy can learn a \emph{resource-aware
+write-depth} policy from delayed future utility, and --- critically --- whether
+any resulting gain is attributable to routing rather than to added capacity,
+added compute, or access to privileged task identity.
+
+\paragraph{Prior.} Our prior on a positive result was low. Yoon
 \cite{yoon2026subspace} reports that a simple similarity rule matches or beats a
-learned reinforcement-learning allocation controller under fixed capacity. We
-therefore treat a fixed heuristic as the primary comparator and preregister a
-negative replication as a publishable outcome.
+learned reinforcement-learning allocation controller under fixed capacity,
+concluding that the memory mechanism rather than a learned allocation policy
+drives continual-learning performance. We therefore preregistered a fixed
+heuristic as the \emph{primary} comparator and a negative replication as a
+publishable outcome.
 
-\section{Related work}
+\section{Related work and the surviving claim}
 
-\TODO{prose expansion of docs/LITERATURE.md; the distance from
-\cite{li2026duallayer} and \cite{zhang2026budgetmem} must be stated explicitly
-and must not be overstated}
+Four clusters bound the contribution.
+
+\textbf{Expert and module routing.} Progressive networks \cite{rusu2016progressive},
+PathNet \cite{fernando2017pathnet}, dynamically expandable networks
+\cite{yoon2017den} and CN-DPM \cite{lee2020cndpm} route \emph{which module
+computes} or \emph{when to add capacity}. Their action space is module identity;
+ours is persistence depth.
+
+\textbf{Learned plasticity.} Differentiable plasticity \cite{miconi2018diffplasticity},
+Backpropamine \cite{miconi2020backpropamine}, NeuroPlastic
+\cite{jiang2026neuroplastic} and GateRA \cite{ou2025gatera} learn a continuous,
+differentiable \emph{magnitude} of change within one parametric substrate,
+driven by immediate loss. They do not make a discrete allocation across
+substrates with different persistence and different resource prices.
+
+\textbf{Agent memory write policies.} Memory-R1 \cite{yan2025memoryr1} trains
+ADD/UPDATE/DELETE/NOOP over external memory; MemRL \cite{zhang2026memrl} and
+RoMeRL \cite{yang2026romerl} learn episodic-memory utilities. All fix the
+substrate and vary the operation. BudgetMem \cite{zhang2026budgetmem} performs
+RL budget-tier routing with explicit performance-cost control, but its tiers are
+levels of memory-\emph{construction compute}; every write lands in the same
+external store and no parameters are updated.
+
+\textbf{The closest work.} Dual-Layer Agentic Memory \cite{li2026duallayer}
+performs cost-aware epistemic routing at the write phase (non-write /
+write-new / write-update) and separately consolidates external memory into
+parameters by periodic supervised fine-tuning. Three gaps remain. (i) The routed
+decision is whether to externalise, taken \emph{within} the external substrate;
+the external-to-parametric depth transition is a \emph{schedule}, not a per-item
+routed decision. (ii) The router is a prompted model cascade judging epistemic
+redundancy, not a policy trained from delayed future task utility. (iii) There
+is no single objective in which write cost, storage occupancy, compute and
+interference-driven forgetting are commensurable and jointly optimised.
+
+\paragraph{Surviving claim.} Can a policy learn, from delayed future task
+utility under a unified resource budget, to allocate each experience to a
+substrate of differing persistence and interference character --- and is any
+gain attributable to routing rather than to capacity, compute, or privileged
+task identity? No single property below is novel alone; the claim is the
+conjunction plus the controls that make it measurable.
 
 \section{Problem formulation}
 
-At each write event $t$ the agent observes $(k_t, v_t)$ and selects an action
+At each write event $t$ the agent observes $(k_t, v_t)$ and selects
 $a_t \in \{\textsc{ignore}, \textsc{episodic}, \textsc{fast}, \textsc{slow}\}$
-from a policy $\pi_\theta(a \mid \phi_t)$, where $\phi_t$ is a feature vector
-that is a function of the stream prefix only. The objective is
+from $\pi_\theta(a \mid \phi_t)$, where $\phi_t$ is a function of the stream
+prefix only. The objective is
 \begin{equation}
-J = U - \lambda_f F - \lambda_s S - \lambda_w W - \lambda_c C,
+J \;=\; U \;-\; \lambda_f F \;-\; \lambda_s S \;-\; \lambda_w W \;-\; \lambda_c C,
+\label{eq:objective}
 \end{equation}
-with $U$ mean per-query recall utility, $F$ retention regression measured by
-evaluator-only probes, and $S, W, C$ normalised storage, write, and compute
-consumption under a cost table and hard write ceiling shared by every arm.
+with $U$ the mean per-query recall utility in $[0,1]$, $F$ retention regression
+measured by evaluator-only probes, and $S, W, C$ normalised storage, write and
+compute consumption. Frozen weights: $\lambda_f = 0.50$, $\lambda_s = 0.10$,
+$\lambda_w = 0.10$, $\lambda_c = 0.05$.
 
-\section{Benchmark: SDW-1}
+\paragraph{Action space.} Four actions are the smallest set that keeps
+\emph{depth} an axis. \textsc{ignore} is required, or storage cost is trivially
+minimised by never routing anywhere and the noise class has no correct answer.
+Two substrates would give a binary write/no-write decision, which is the setting
+of \cite{yan2025memoryr1,li2026duallayer}; three ordered persistence levels are
+the minimum in which ``deeper'' is meaningful and mis-routing has direction.
+Latent-state and module-spawning actions are excluded: the former is a sibling
+track's variable, the latter adds capacity, which is the primary confound.
 
-\TODO{prose expansion of docs/BENCHMARK.md}
+Whether four actions are \emph{justified} is not assumed but tested: the
+benchmark is admissible only if the empirically optimal class-to-action mapping
+is a bijection (\S\ref{sec:bench}).
 
-The optimal class-conditional mapping is obtained by exhaustive search over all
-$4^4$ mappings on development seeds rather than asserted by the designer. The
-recovered optimum contradicts our design hypothesis, which we report as evidence
-that the ground truth was discovered rather than planted.
+\paragraph{Resource accounting.} One cost table and one hard write ceiling are
+shared by every arm. Writes are counted in parameter/value elements exposed to a
+write; an episodic entry costs $\text{key\_dim} + \text{value\_dim}$ because it
+must store its key to be retrievable. Storage is an occupancy integral. Reading
+the episodic store is a similarity search costing $|E| \times \text{key\_dim}$.
+Router decision compute is charged on every decision and reported separately.
+
+\section{SDW-1}
+\label{sec:bench}
+
+Four hidden classes with different ideal depths: \textsc{noise} (never queried),
+\textsc{one\_off} (queried once, soon), \textsc{local} (queried repeatedly
+within a regime, value \emph{redefined} each regime), \textsc{stable} (queried
+up to 2200 steps later, value fixed for the lifetime).
+
+Three design contracts, all machine-checked. First, key and value vectors are
+drawn i.i.d.\ from the same distribution for every class, so a \emph{first}
+encounter carries no class information (verified by a permutation test on
+per-class mean vectors). Second, recurrent keys are introduced at times drawn
+uniformly over the whole lifetime and force-presented at introduction, and each
+class is emitted by an independent per-step Bernoulli draw, so arrival time
+carries no class information either. Third, only recurrence, value revision and
+past query traffic separate the classes --- all prefix functions.
+
+\paragraph{The ground truth was found, not asserted.} The optimal
+class-to-action mapping is obtained by exhaustive search over all $4^4 = 256$
+class-conditional mappings on development seeds. It is
+$\textsc{noise} \to \textsc{ignore}$, $\textsc{one\_off} \to \textsc{fast}$,
+$\textsc{local} \to \textsc{episodic}$, $\textsc{stable} \to \textsc{slow}$ ---
+which \emph{contradicts} the mapping the benchmark was designed around
+($\textsc{one\_off} \to \textsc{episodic}$, $\textsc{local} \to \textsc{fast}$),
+ranked 9th of 256. We retain and report the divergence: it is evidence that the
+ground truth was discovered by search rather than planted by the designer.
+
+Admissibility requires the oracle to clear a floor, no arm to exceed a ceiling,
+the oracle to beat both the best single-depth control and the heuristic by a
+margin, the optimal mapping to be a bijection, and that mapping to be stable in
+a local neighbourhood (15/16 points; the single boundary is
+$\gamma_{\text{fast}} = 0.999$, where the fast substrate stops being a distinct
+depth).
 
 \section{Method}
 
-\TODO{policy parameterisation; evolution strategies on the objective; why
-per-decision credit assignment fails here (resource cost is orders of magnitude
-below attributed utility, interference is not attributable, budget exhaustion is
-a trajectory property)}
+The policy is a small tanh MLP over 15 whitelisted prefix features, trained by
+evolution strategies on Eq.~\eqref{eq:objective} directly.
 
-\section{Experimental protocol}
+\paragraph{Why ES and not policy gradients.} We first implemented REINFORCE with
+per-decision credit assignment. It did not train: the development objective was
+flat across 60 epochs and the policy collapsed to writing durably until the
+budget was exhausted. The cause is measurable and structural --- three of the
+five terms in Eq.~\eqref{eq:objective} are non-local. A write's resource cost is
+$\sim$4 orders of magnitude below its attributed utility ($\sigma$ ratio
+$2.6\times10^{-4}$) and vanishes under advantage standardisation; interference
+caused in \emph{other} keys is not attributable to the causing write; and budget
+exhaustion is a whole-trajectory property. ES optimises the objective as a black
+box, requiring no attribution assumption and no reward shaping.
 
-\TODO{arms, seeds, budgets, validity gates, transcribed from
-experiments/EXP-001-PREREG.md}
+\paragraph{Fairness of search budget.} The learned router consumes
+$3 \times 100 \times 51 = 15{,}300$ development rollouts. The three-parameter
+heuristic grid consumed 81 --- a $\sim$190$\times$ asymmetry. We therefore
+introduced an eight-knob fixed-rule family (adding an explicit durable-write
+rule with recurrence and query-evidence conditions, and a budget guard; all
+inputs still decision-time legal) and searched it with the \emph{same} 15,300
+rollouts. This raised the comparator from $0.4046$ to $0.4390$ on development
+seeds and is the comparator used for H1.
 
-\section{Leakage controls}
+\paragraph{Policy selection.} Policy-seed variance dominated the ES budget: at
+100 generations three initialisations spanned $0.3883 / 0.4702 / 0.5209$ on
+development seeds, a spread of $0.133$, against a total budget effect of
+$+0.015$ from 60 to 200 generations. We therefore train three policy seeds and
+carry forward the one with the best \emph{development} objective. Selection by
+confirmatory performance is prohibited.
 
-\TODO{L1--L7, including the first-encounter mutual-information test and its
-canary}
+\section{Attribution controls}
+
+\paragraph{A control that failed.} Our first attribution control,
+\textsc{random\_matched}, randomises routing while matching the learned router's
+realised action histogram. It is inadequate, and we report this rather than
+quietly replacing it. In a world where the future-utility schedule is randomised,
+the learned policy still beat its own matched control by $+0.1357$ --- slightly
+\emph{more} than the $+0.1108$ it achieved in the real world. \textsc{random\_matched}
+preserves only the marginal $P(A)$; the learned router also has $P(A \mid X)$,
+and generic conditional resource sense clears that bar with no utility knowledge
+at all. The test is retained as permanently failed; its threshold was never
+relaxed.
+
+\paragraph{The control that replaced it.} Let $R$ be the policy trained on real
+worlds and $S$ an \emph{identically specified} policy --- same network, same
+feature whitelist, same ES budget, same policy seeds, same selection rule ---
+trained on time-shuffled worlds in which each query's target key is redrawn
+uniformly over keys already written at that moment. The write stream, query
+count and query timing are byte-identical, so all budgets are unchanged; only
+the prefix-to-future-utility relationship is destroyed. This is the standard
+negative-control shape: the null retains every nuisance mechanism and removes
+only the hypothesised informative relationship.
+
+Evaluated once on 32 fresh audit seeds, neither training nor confirmatory
+(Table~\ref{tab:l5b}). $\Delta_{\text{real}} = J_{RR} - J_{SR}$ and the crossover
+interaction $I = (J_{RR}-J_{SR}) - (J_{RS}-J_{SS})$ were both required to exclude
+zero on the positive side.
+
+\begin{table}[t]
+\centering
+\begin{tabular}{lcc}
+\toprule
+ & evaluated on real & evaluated on shuffled \\
+\midrule
+policy $R$ (trained on real) & $+0.5130$ & $-0.0898$ \\
+policy $S$ (trained on shuffled) & $+0.0201$ & $+0.0183$ \\
+\bottomrule
+\end{tabular}
+\caption{Cross-world negative control, mean over 32 one-shot audit seeds.
+$\Delta_{\text{real}} = +0.4929$ $[+0.4822, +0.5032]$;
+$I = +0.6011$ $[+0.5902, +0.6122]$. Both positive on 32/32 individual seeds.
+The pattern is a true \emph{crossover}: $R$ wins on real worlds and $S$ wins on
+shuffled worlds, so $R$ is not simply a better network.}
+\label{tab:l5b}
+\end{table}
 
 \section{Results}
 
-\emph{This section is intentionally empty.} No confirmatory run has been
-executed. EXP-001 is gated on issue~\#1, and EXP-002 is additionally gated on
-review of the first mechanically valid \texttt{state-promotion} engineering
-pilot.
+Executed once, protocol v1.2, on five held-out seeds taken from a frozen lock.
+Both policy checkpoints and the comparator artefact were hash-verified before
+execution. All gates passed in preregistered order --- leakage, manifest
+validation, write ceilings, admissibility, then invalidating criteria --- with
+comparative metrics withheld in code until they did.
 
-\subsection{Main comparison}
-\TODO{Table: objective, task utility, forgetting, resource totals per arm, with
-paired-bootstrap 95\% CIs over five held-out confirmatory seeds}
+\begin{table}[t]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+arm & objective & utility & forgetting & legal \\
+\midrule
+\textsc{oracle} (ceiling) & $0.5480$ & $0.897$ & $0.254$ & no \\
+\textbf{\textsc{learned}} & $\mathbf{0.5060}$ & $0.849$ & $0.282$ & yes \\
+\textsc{heuristic\_ext} & $0.4153$ & $0.801$ & $0.327$ & yes \\
+\textsc{heuristic} (3-param) & $0.4070$ & $0.802$ & $0.393$ & yes \\
+\textsc{privileged\_taskid} & $0.4068$ & $0.802$ & $0.393$ & no \\
+\textsc{capacity\_matched} & $0.2483$ & $0.715$ & $0.651$ & yes \\
+\textsc{random\_matched} & $0.2274$ & $0.684$ & $0.487$ & yes \\
+\textsc{all\_fast} & $0.2264$ & $0.685$ & $0.573$ & yes \\
+\textsc{all\_slow} & $0.0269$ & $0.365$ & $0.312$ & yes \\
+\textsc{shuffle\_trained} & $0.0167$ & $0.249$ & $0.185$ & yes \\
+\textsc{all\_episodic} & $-0.0051$ & $0.478$ & $0.679$ & yes \\
+\textsc{all\_ignore} & $-0.0827$ & $0.000$ & $0.000$ & yes \\
+\bottomrule
+\end{tabular}
+\caption{Confirmatory arms, mean over five held-out seeds.}
+\label{tab:arms}
+\end{table}
 
-\subsection{Attribution}
-\TODO{Table: routing vs.\ budget-matched random vs.\ capacity-matched vs.\
-compute break-even vs.\ privileged task ID}
+\begin{table}[t]
+\centering
+\begin{tabular}{lrr}
+\toprule
+contrast & estimate & 95\% CI \\
+\midrule
+\textbf{K1} \textsc{learned} $-$ \textsc{heuristic\_ext} & $+0.0907$ & $[+0.0798, +0.1016]$ \\
+\textbf{K2} \textsc{learned} $-$ \textsc{shuffle\_trained} & $+0.4893$ & $[+0.4553, +0.5232]$ \\
+\textbf{K7} \textsc{learned} $-$ \textsc{capacity\_matched} & $+0.2577$ & $[+0.2430, +0.2753]$ \\
+\textbf{K9} \textsc{privileged\_taskid} $-$ \textsc{heuristic} & $-0.0003$ & $[-0.0008, -0.0000]$ \\
+\textsc{learned} $-$ \textsc{random\_matched} (secondary) & $+0.2786$ & $[+0.2551, +0.3057]$ \\
+\textsc{oracle} $-$ \textsc{learned} (headroom) & $+0.0420$ & $[+0.0335, +0.0542]$ \\
+\bottomrule
+\end{tabular}
+\caption{Preregistered contrasts, paired bootstrap over five seeds.
+K1 is positive on 5/5 individual seeds ($+0.0755 \ldots +0.1066$).}
+\label{tab:contrasts}
+\end{table}
 
-\subsection{Diagnostics}
-\TODO{hidden-class $\times$ action confusion; per-class utility; action
-distribution over training}
+The development estimate of K1 was $+0.0819$; the confirmatory value is
+$+0.0907$ on seeds the policy never saw. The learned policy uses all four
+actions ($0.184 / 0.232 / 0.503 / 0.081$) and spends $76.9\%$ of the write
+budget against the comparator's $98.7\%$.
 
-\section{Negative and null results}
-
-Development-stage findings preserved regardless of the final outcome:
-\begin{enumerate}
-  \item an assumed class-to-action mapping presented as an oracle was not an
-        upper bound and was beaten by the fixed heuristic;
-  \item the designed mapping was falsified by exhaustive search;
-  \item arrival time leaked the hidden class, caught by the first-encounter
-        independence test on an untrained policy;
-  \item an episodic cost model omitting key storage and search cost let a
-        capacity-matched exact store beat the oracle;
-  \item per-decision policy-gradient credit assignment could not see most of the
-        objective and did not train.
-\end{enumerate}
+\paragraph{Mechanism.} The learned policy buys a near-oracle \textsc{local}
+score and pays for it on \textsc{one\_off}: \textsc{learned} scores
+$0.559 / 0.952 / 0.824$ on \textsc{one\_off}/\textsc{local}/\textsc{stable}
+against the oracle's $0.776 / 0.971 / 0.848$ and the comparator's
+$0.786 / 0.769 / 0.844$.
 
 \section{Limitations}
 
-The benchmark is synthetic and small. No language-model result is claimed.
-Substrate models are linear associative memories, so ``interference'' here is
-subspace overlap rather than anything a transformer does. The forgetting term is
-partially double-counted in task utility; we report sensitivity at
-$\lambda_f = 0$. \TODO{expand}
+\paragraph{Five seeds.} This is the most important caveat. The preregistered
+bootstrap criterion passed, so H1 is supported \emph{under the protocol}, but
+20{,}000 bootstrap resamples do not turn five independent seeds into 20{,}000
+observations. The bootstrap resamples the same five lifetimes; its interval
+describes uncertainty about the mean of that small sample, not the breadth of
+the effect. We therefore frame this as a \emph{controlled proof-of-principle},
+not a broad empirical demonstration. A separately preregistered replication on
+32 untouched seeds, with the frozen policy, comparator and configuration
+unchanged, is the appropriate strengthening step and is specified in
+\texttt{experiments/EXP-001R-PREREG.md}.
+
+\paragraph{One synthetic benchmark.} SDW-1 is a toy with linear associative
+substrates; ``interference'' here is subspace overlap, not anything a
+transformer does. No language-model claim is made.
+
+\paragraph{K2's margin overstates its own weight.} \textsc{shuffle\_trained}
+scores $0.0167$, near the floor, so $+0.4893$ is a large number about a weak
+control in absolute terms. The load-bearing evidence is the crossover in
+Table~\ref{tab:l5b}, where the same policy $S$ \emph{beats} $R$ in the shuffled
+world, showing $S$ is competent for the world it trained on rather than broken.
+
+\paragraph{Other limits.} The comparator is the best fixed rule found under a
+matched budget, not the best that exists. The policy was selected on development
+data over three seeds (spread $0.133$); the matched comparator search is what
+makes that fair. Local stability of the optimal mapping was inherited from
+frozen calibration and not recomputed on confirmatory seeds, though the
+bijection itself was recomputed by exhaustive search and recovered.
+
+\section{Reproducibility}
+
+Three protocol locks are preserved (v1.0, v1.1, v1.2), each pinning the
+admissible commit, source-tree hash, config hash, dependency set and all three
+seed lists, and each asserting field-by-field equivalence to its predecessor on
+every scientific field. One aborted execution attempt is retained rather than
+deleted: it stopped at the manifest-validation gate on a lock-resolution defect,
+two gates before any comparative metric is computed. Every run carries a
+manifest recording resources, diagnostics and the leakage verdict; 131 tests
+gate the repository.
 
 \section{Conclusion}
 
-\TODO{written only after results exist}
+On a synthetic benchmark where different observations genuinely deserve
+different storage depths, a policy reading only decision-time-legal features
+learns a write-depth allocation that beats the best fixed rule found under an
+equal search budget, and the advantage is attributable to having learned from a
+genuine prefix-to-future-utility relationship rather than to capacity, compute,
+privileged context, or budget allocation. This is one controlled result on one
+toy with five seeds. Whether write-depth routing survives contact with a
+language model is open, and the design constraints that a sibling track's
+engineering pilot has already imposed on that question are recorded in
+\texttt{experiments/EXP-002-DESIGN.md}.
 
 \bibliographystyle{plain}
 \bibliography{references}
