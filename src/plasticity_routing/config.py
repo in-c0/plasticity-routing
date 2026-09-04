@@ -154,3 +154,24 @@ def derive_seeds(label: str, count: int, lo: int = 40_000_000, hi: int = 49_999_
 #: EXP-001R replication seeds. Untouched: not development, not audit, not
 #: confirmatory. Frozen before the replication runs.
 REPLICATION_SEEDS = derive_seeds(REPLICATION_SEED_LABEL, REPLICATION_SEED_COUNT)
+
+
+# ---------------------------------------------------------------------------
+# EXP-002 (language model) -- design-stage seed provenance only.
+#
+# No EXP-002 code exists and LM execution is not authorized. These seeds are
+# declared now so that the substrate-sufficiency preregistration can name them
+# before any of it is implemented, and so their derivation is checkable rather
+# than asserted.
+# ---------------------------------------------------------------------------
+
+EXP002_DEV_SEED_LABEL = "EXP-002-substrate-sufficiency-development-v1"
+EXP002_DEV_SEED_COUNT = 5
+
+#: Development seeds for the EXP-002 substrate-sufficiency gates. Permanently
+#: excluded from any later EXP-002 comparative or confirmatory run: once a
+#: sufficiency grid has been inspected on a seed, that seed can no longer
+#: support an unbiased comparison.
+EXP002_DEV_SEEDS = derive_seeds(
+    EXP002_DEV_SEED_LABEL, EXP002_DEV_SEED_COUNT, lo=60_000_000, hi=69_999_999
+)

@@ -7,7 +7,8 @@ between roles silently invalidates whatever it leaks into.
 from __future__ import annotations
 
 from plasticity_routing.config import (
-    AUDIT_SEEDS, CONFIRMATORY_SEEDS, DEV_SEEDS, REPLICATION_SEED_COUNT,
+    AUDIT_SEEDS, CONFIRMATORY_SEEDS, DEV_SEEDS, EXP002_DEV_SEED_COUNT,
+    EXP002_DEV_SEED_LABEL, EXP002_DEV_SEEDS, REPLICATION_SEED_COUNT,
     REPLICATION_SEED_LABEL, REPLICATION_SEEDS, derive_seeds,
 )
 
@@ -16,6 +17,7 @@ ALL_SETS = {
     "audit": set(AUDIT_SEEDS),
     "confirmatory": set(CONFIRMATORY_SEEDS),
     "replication": set(REPLICATION_SEEDS),
+    "exp002_dev": set(EXP002_DEV_SEEDS),
 }
 
 
@@ -48,3 +50,20 @@ def test_replication_seeds_sit_outside_every_other_range():
         other = ALL_SETS[name]
         assert not (lo <= min(other) <= hi or lo <= max(other) <= hi), \
             f"replication range overlaps {name}"
+
+
+def test_exp002_development_seeds_are_reproducible_from_their_label():
+    assert derive_seeds(
+        EXP002_DEV_SEED_LABEL, EXP002_DEV_SEED_COUNT, lo=60_000_000, hi=69_999_999
+    ) == EXP002_DEV_SEEDS
+
+
+def test_exp002_development_seeds_are_declared_size_and_distinct():
+    assert len(EXP002_DEV_SEEDS) == EXP002_DEV_SEED_COUNT == 5
+    assert len(set(EXP002_DEV_SEEDS)) == 5
+
+
+def test_derive_seeds_respects_its_range():
+    s = derive_seeds("range-check", 40, lo=100, hi=999)
+    assert all(100 <= x <= 999 for x in s)
+    assert len(set(s)) == 40

@@ -226,10 +226,17 @@ Pure NumPy, CPU only, no GitHub Actions.
     Frozen policy, comparator and configuration unchanged; raises the
     inferential sample from 5 to 32. See
     [`experiments/EXP-001R-PREREG.md`](experiments/EXP-001R-PREREG.md).
-*   **EXP-002 — language model. Gate review SATISFIED; design may begin;
-    execution NOT authorized.** The State Promotion pilot has been reviewed and
-    imposes seven pre-result constraints on any LM design. See
-    [`experiments/EXP-002-DESIGN.md`](experiments/EXP-002-DESIGN.md).
+*   **EXP-002 — language model. Gate review SATISFIED; design in progress;
+    execution NOT authorized.** Seven pre-result constraints from the State
+    Promotion pilot ([`experiments/EXP-002-DESIGN.md`](experiments/EXP-002-DESIGN.md)),
+    refined by Amendment N and turned into a gating preregistration
+    ([`experiments/EXP-002-SUBSTRATE-SUFFICIENCY-PREREG.md`](experiments/EXP-002-SUBSTRATE-SUFFICIENCY-PREREG.md)).
+
+    Frozen sequence: representation sufficiency → `FAST` sufficiency →
+    `SLOW` sufficiency → resource/compute accounting sanity → routing benchmark
+    admissibility → router/comparator design → protocol freeze → LM comparative
+    runs. Stages 1–5 are arm-agnostic. **A router that never selects an action
+    is only interesting if that action was actually available.**
 
 ### Historical
 

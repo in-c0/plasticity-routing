@@ -341,3 +341,82 @@ Pre-result design changes, recorded before any confirmatory result:
     fires the runner stops before the headline comparison is printed or
     aggregated.
 
+*   **2026-09-04, Amendment N — EXP-002 constraint refinements (design only).**
+    (Letters `F` and `G` were never issued; `N` is the next unused letter.)
+
+    Four constraints from Amendment M were under-specified in ways that would
+    have imported assumptions rather than tested them. Resolved here, before any
+    EXP-002 code exists.
+
+    **N-1 — the requirement is input-conditional substrate *capacity*, not
+    LoRA.** Amendment M's C-3 named additive low-rank deltas on `q_proj`/`v_proj`
+    because that is what the sibling track adopted. That is their architecture
+    decision, and adopting it wholesale would import a conclusion. The
+    requirement is functional: a substrate must be able to hold `N` distinct
+    key→value bindings such that writing one does not collapse the others, at
+    the cardinality the benchmark demands and within the arm's own write budget.
+    LoRA is the leading *candidate*; key-conditioned adapters, hypernetwork-
+    generated deltas and an external parametric associative memory keyed on the
+    item are also admissible; a global prompt/prefix is retained as a
+    **control**, because the sibling track's failure of it is evidence about one
+    parameterization under one budget, not a proof of zero expressive power. The
+    gate selects empirically.
+
+    **N-2 — match resource *entitlement*, never actual consumption.** Every arm
+    receives the same token entitlement, the same write ceiling and the same
+    storage ceiling. Actual consumption is measured and reported. An arm that
+    consumes *less* is exhibiting the mechanism under test — this is already the
+    rule for parameter writes ("B5 may consume less than the ceiling when its
+    gate declines; no dummy writes") and it now covers tokens too. **Padding an
+    arm with dummy work to equalize consumption is prohibited.**
+
+    The asymmetry matters and Amendment M missed it. A consumption spread is a
+    confound only when it runs in the direction that would flatter the proposed
+    method. If the proposed arm consumes *more* than a baseline it beats, the
+    comparison is confounded and needs a compute-matched baseline or a frontier.
+    If it consumes *less* and still wins, the spread is evidence in its favour,
+    not against it. The reporting rule is therefore: always publish the
+    consumption alongside the score, and require the frontier only in the
+    flattering direction.
+
+    **N-3 — a cheap router stays on the table.** Amendment M's C-2 read as
+    though routing necessarily costs an LM forward pass. It does not. Router
+    inputs may be (i) cheap stream statistics of the kind EXP-001 used, costing
+    no forward pass at all; (ii) hidden states the backbone already computed for
+    the primary task, whose marginal cost is close to zero; or (iii) a dedicated
+    extra forward, which is what cost the sibling track 72.4% of total
+    algorithmic compute. The design should *prefer* the cheapest sufficient
+    router, and the accounting must separate amortized from marginal router
+    compute. The escalation is graded rather than automatic: below 10% of total
+    algorithmic compute a break-even analysis suffices (EXP-001 ran at 4.9%);
+    at or above 10%, a compute-matched comparator or a preregistered
+    performance–compute frontier becomes mandatory.
+
+    **N-4 — sufficiency is per-substrate, and `IGNORE` is not an absorption
+    test.** Amendment M's C-7 treated "can this substrate absorb content" as one
+    gate. Each action needs its own, and one of them is not an absorption
+    question at all:
+
+    *   `EPISODIC` — exact storage and retrieval of `N` bindings within
+        capacity; the failure mode is keying/retrieval collapse, not capacity.
+    *   `FAST` — **two-sided**: acquires a segment within the online budget
+        *and* decays on the intended timescale. A fast substrate that never
+        forgets is not fast, and the depth axis degenerates.
+    *   `SLOW` — **two-sided**: absorbs a segment under plausible compute at a
+        fixed write budget *and* retains it across the lifetime horizon. The
+        sibling track's Phase-B v1 failed the absorption half, which is why
+        their B5 accepted zero promotions.
+    *   `IGNORE` — justified by **negative expected write value**: there must
+        exist items for which writing to *any* substrate strictly lowers the
+        objective versus not writing, once resource cost and interference are
+        counted. This is a property of the benchmark's item distribution, not of
+        a substrate's capacity.
+
+    **N-5 — accelerator equivalence gets numbers.** Amendment M's C-6 said
+    "refuse rather than warn" without saying what to refuse on. Tolerances are
+    fixed in
+    [`../experiments/EXP-002-SUBSTRATE-SUFFICIENCY-PREREG.md`](../experiments/EXP-002-SUBSTRATE-SUFFICIENCY-PREREG.md)
+    §7. The governing principle: **numerical drift is tolerable, decision drift
+    is not.** Logit deviation may sit within a stated envelope; argmax
+    agreement and scored-metric agreement must be exact.
+
