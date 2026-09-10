@@ -420,3 +420,71 @@ Pre-result design changes, recorded before any confirmatory result:
     is not.** Logit deviation may sit within a stated envelope; argmax
     agreement and scored-metric agreement must be exact.
 
+*   **2026-09-10, Amendment O — Stage-1 reproducibility freeze, and two
+    corrections to the sufficiency tests (design only).**
+
+    **O-1 — the sufficiency preregistration is not yet executable
+    reproducibly.** Its *pass thresholds* are frozen, but the quantities that
+    determine what those thresholds are applied to are not: the backbone model
+    and revision, the binding generator, `N`, the candidate capacity grid, the
+    learning-rate grid, the update budget and the token entitlement are all
+    explicitly undecided. That was acceptable while the document was pure
+    design. It is not acceptable once a candidate result exists, because the
+    selection rule "smallest sufficient capacity" is only meaningful over a
+    grid that was fixed in advance — otherwise the grid itself is a tuning knob.
+
+    The Stage-1 plan therefore terminates in a **machine-readable freeze** of
+    exactly those quantities, and the freeze is enforced by a validator that
+    refuses to emit an artifact while any required field is unset. Discipline is
+    not the mechanism; refusal is.
+
+    **O-2 — `SLOW` sufficiency was testing the wrong things.** Two defects,
+    both of which would have produced a passing gate that meant nothing.
+
+    *§6a asked for the impossible.* It scored "held-out bindings that never
+    touched optimization". For arbitrary nonce key→value memory there is nothing
+    to generalise from: a binding the learner was never shown is unknowable in
+    principle, not merely unlearned. Scoring it measures the prior, not
+    absorption. What must be held out is the **evaluation presentation/query**,
+    not the underlying binding — the learner trains on some presentations of a
+    binding and is scored on different presentations of that same binding, with
+    no label it never saw. This is what the sibling track actually does (train
+    on 48 exposures of 6 mappings, score the 6 distinct mappings), and our text
+    had drifted from it.
+
+    *§6b was close to tautological.* It measured retention over a lifetime
+    horizon "with no further writes to that substrate". For a static adapter or
+    low-rank delta, nothing happens in that interval by construction, so the
+    test is satisfied by doing nothing. Durability that survives *no
+    intervening events* is not the property `SLOW` exists to provide.
+
+    Replaced by **durability under interference**: acquire set `A`, then perform
+    a fixed preregistered sequence of further `SLOW` writes for disjoint sets
+    `B`, `C`, …, and require **both** retention of `A` at the lifetime horizon
+    **and** acquisition of the later sets. Requiring both is essential — a
+    substrate that refuses to learn anything after `A` would otherwise pass
+    durability trivially, which is the mirror image of the original defect.
+
+    **O-3 — the same defect exists in `FAST` §5b, by the same argument.**
+    *Proposed here as an extension of O-2, not raised by the owner; reject
+    independently if unwanted.* §5b measures retention decay "after the last
+    write", which presumes transience arises from an intrinsic decay mechanism.
+    In EXP-001's SDW-1 that was true — the fast substrate carried an explicit
+    multiplicative decay. A LoRA-style adapter has no such mechanism, and left
+    alone it does not decay at all, so §5b would fail for a reason that is about
+    a *missing mechanism* rather than a measured property.
+
+    §5b must therefore first declare **which mechanism provides transience**:
+    (i) explicit decay applied per step, in which case measuring in isolation is
+    valid as written; or (ii) interference from subsequent `FAST` writes, in
+    which case the test needs the same sequential-interference design as §6b.
+    Declaring the mechanism is part of the Stage-1 freeze.
+
+    **On the accelerator criterion.** The 100% fp32↔reduced-precision argmax
+    agreement requirement is knowingly conservative: near numerical ties it can
+    reject an accelerator that is fine. Retained unchanged for v1 on the
+    owner's judgement, and the asymmetry is why — it can cause a false
+    *rejection*, which costs a device, but it cannot manufacture a flattering
+    scientific result. A rejected accelerator is simply run at a safer
+    dtype/device.
+

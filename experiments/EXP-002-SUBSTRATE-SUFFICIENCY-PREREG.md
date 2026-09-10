@@ -1,7 +1,11 @@
 # EXP-002 substrate-sufficiency preregistration
 
-**Status: PREREGISTERED, NOT RUN. No EXP-002 code exists. LM execution is not
-authorized.** Written 2026-09-04, before implementation.
+**Status: PREREGISTERED, NOT RUN. LM execution is not authorized.**
+Written 2026-09-04. **Revised 2026-09-10 by Amendment O**, before any candidate
+result existed: §5b, §6a and §6b are corrected, and §13 adds the machine-readable
+Stage-1 freeze that makes the whole document executable reproducibly. The
+superseded wording is quoted inline so each correction is legible as a
+correction.
 
 This is the gating artefact. Its purpose is to establish that each declared
 action is a *viable destination* before any compute is spent comparing routers.
@@ -116,40 +120,80 @@ is not a distinct depth, and the action space collapses to three.
 **5a. Acquisition.** Acquires a segment's bindings within the online budget:
 mean accuracy ≥ **0.833**, worst seed ≥ **0.667**, matching §4.
 
-**5b. Transience.** Retention decays on the intended timescale. Let `H` be the
-benchmark's regime length. Required: retention at `H` steps after the last write
-≤ **0.40** of peak, **and** retention at `H/4` ≥ **0.70** of peak.
+**5b. Transience.** *Corrected by Amendment O-3. Superseded wording: "Retention
+decays on the intended timescale … retention at `H` steps after the last write ≤
+0.40 of peak" — which silently presumed an intrinsic decay mechanism.*
 
-The two-sided band is the point. The upper bound makes the substrate genuinely
-transient; the lower bound stops it decaying so fast that it is indistinguishable
-from `IGNORE` within a regime.
+The freeze must first **declare which mechanism provides transience**, because
+the valid test differs:
+
+*   **(i) explicit decay** applied per step. Then transience is intrinsic and is
+    measured in isolation: let `H` be the regime length; require retention at
+    `H` after the last write ≤ **0.40** of peak **and** retention at `H/4` ≥
+    **0.70** of peak.
+*   **(ii) interference** from subsequent `FAST` writes. Then measuring "after
+    the last write" is vacuous — a static adapter left alone does not decay at
+    all — and transience is measured with the same sequential design as §6b:
+    after acquiring `A`, write disjoint `B`, `C`, …, and require `A`'s retention
+    to fall below **0.40** of peak by the horizon while later sets are still
+    acquired.
+
+The two-sided band is the point under either mechanism. The upper bound makes
+the substrate genuinely transient; the lower bound stops it decaying so fast
+that it is indistinguishable from `IGNORE` within a regime.
 
 **If 5a fails:** the online budget or the parameterization is inadequate — go
 back to stage 1.
 **If 5b fails:** `FAST` and `SLOW` are not distinct depths. Either introduce an
-explicit decay mechanism, or reduce the action space and say so. Do **not**
-proceed to routing with two actions that are secretly one.
+explicit decay mechanism (moving to case (i)), or reduce the action space and
+say so. Do **not** proceed to routing with two actions that are secretly one.
 
 ## 6. Stage 3 — `SLOW` sufficiency (two-sided)
 
 This is the gate the sibling track's Phase-B v1 failed, and the reason this
 document exists.
 
-**6a. Absorption.** Starting from the paired initialized slow substrate,
-consolidate using **only already-observed training evidence** at a **fixed write
-budget** — the same number of parameter-element writes in every cell, so that
-batch size and learning rate vary while write cost does not. Score current-segment
-accuracy after consolidation on held-out bindings that never touched
-optimization.
+**6a. Absorption.** *Corrected by Amendment O-2. Superseded wording: "Score …
+on held-out bindings that never touched optimization" — which asked the learner
+to produce a nonce binding it had never been shown, and therefore measured the
+prior rather than absorption.*
+
+Starting from the paired initialized slow substrate, consolidate using **only
+already-observed training evidence** at a **fixed write budget** — the same
+number of parameter-element writes in every cell, so that batch size and
+learning rate vary while write cost does not.
+
+**What is held out is the presentation, not the binding.** Each binding has a
+declared set of presentations (surface forms / query templates / positions).
+The freeze partitions them into a training split and an evaluation split. The
+learner optimizes on training presentations only; scoring uses evaluation
+presentations **of the same bindings**. No label the learner never saw is ever
+required, and no evaluation presentation ever enters optimization or selection.
 
 Pass: mean ≥ **0.833**, worst seed ≥ **0.667**.
 
-**6b. Durability.** Retention at the benchmark's full lifetime horizon ≥
-**0.80** of the post-consolidation score, with no further writes to that
-substrate.
+**6b. Durability under interference.** *Corrected by Amendment O-2. Superseded
+wording: "Retention at the benchmark's full lifetime horizon ≥ 0.80 of the
+post-consolidation score, with no further writes to that substrate" — which a
+static adapter satisfies by construction, since nothing happens in the interval.*
 
-**Grid.** Consolidation batch size and slow learning rate, over a predeclared
-grid, with the write budget held fixed across all cells. Reporting the whole
+Durability is only meaningful against intervening writes, which is the property
+`SLOW` exists to provide. After acquiring set `A`, perform a **fixed
+preregistered sequence** of further `SLOW` writes for disjoint sets `B`, `C`, …
+(count, size and order fixed in the freeze), then require **both**:
+
+*   **retention:** `A`'s score at the lifetime horizon ≥ **0.80** of its
+    post-consolidation score; **and**
+*   **continued acquisition:** each later set reaches the §6a absorption bar on
+    its own evaluation presentations.
+
+Both are required, and the second is not a formality. A substrate that stops
+learning after `A` would pass retention trivially — the exact mirror of the
+defect this correction removes. `SLOW` must hold `A` *while still absorbing*
+`B`, `C`, ….
+
+**Grid.** Consolidation batch size and slow learning rate, over the grid fixed
+in the §13 freeze, with the write budget held fixed across all cells. Reporting the whole
 grid is mandatory; selecting a favourable cell after any routing score is
 visible is prohibited.
 
@@ -157,7 +201,11 @@ visible is prohibited.
 not a viable destination, the four-action space is unjustified, and the correct
 response is to fix consolidation or drop the action — **not** to run a routing
 comparison and report that the router declined to use it.
-**If 6b fails:** `SLOW` is not durable and is not distinct from `FAST`; see §5b.
+**If 6b fails on retention:** `SLOW` is not durable under interference and is
+not distinct from `FAST`; see §5b.
+**If 6b fails on continued acquisition:** the substrate is saturating. Retention
+is being bought by refusing to learn, which is not durability. Report it as a
+capacity finding, not as a `SLOW` pass.
 
 ## 7. `IGNORE` justification, and accelerator equivalence
 
@@ -265,3 +313,38 @@ Every stage reports its full grid regardless of outcome, including failures.
 A stage that fails stops the sequence and is published as a finding about the
 substrate space — which, per the sibling track's Phase-B v1, is a real and
 informative result rather than a setback.
+
+## 13. Stage-1 freeze (Amendment O-1)
+
+The thresholds in §§3–9 are frozen. The quantities those thresholds are *applied
+to* were not, and until they are this document is not executable reproducibly:
+"smallest sufficient capacity" is only a selection rule if the capacity grid was
+fixed beforehand, and a grid chosen after seeing a candidate result is a tuning
+knob wearing a selection rule's clothes.
+
+**No Stage-1 candidate result may be produced until a freeze artifact exists and
+validates.** The freeze is enforced by `scripts/freeze_exp002_stage1.py`, which
+refuses to emit an artifact while any required field is unset — the same posture
+as the protocol locks: refusal, not discipline.
+
+Required fields, grouped:
+
+| group | fields |
+|---|---|
+| backbone | repo id · immutable revision sha · tokenizer revision · sha-256 of every tokenizer asset · dtype · device |
+| task | binding-generator module + source sha · `N` distinct bindings · presentations per binding · **presentation split policy** (training vs evaluation, per §6a) · surface-form/template set · seed list |
+| candidates | enumerated substrate families · capacity grid per family · learning-rate grid · batch-size grid (§6) |
+| budgets | update budget (optimizer steps) · token entitlement · parameter-element write ceiling |
+| mechanisms | **`FAST` transience mechanism** — explicit-decay or interference (§5b) · decay constant if explicit |
+| interference | ordered disjoint sets `A, B, C, …` with sizes · lifetime horizon `H` (§6b) |
+| selection | selection rule + tie-break order |
+| accelerator | equivalence report hash and pass record (§7b) |
+| provenance | git sha · source-tree sha-256 · config hash |
+
+Two rules govern changes:
+
+1. **Before** the first candidate result, the freeze may be revised freely — it
+   is design.
+2. **After** the first candidate result, any change requires a new freeze
+   version with a logged pre-result amendment, and the superseded artifact is
+   retained. Grids may not be extended to rescue a failing candidate.
