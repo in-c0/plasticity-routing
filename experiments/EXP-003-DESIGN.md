@@ -234,7 +234,12 @@ factor's effective range is not constant across allocation levels.
 
 **This limitation must be stated in any result, not discovered afterwards.**
 
-### 7.4 It settles separability from commitment *timing*, not from commitment *policy*
+### 7.4 It settles separability from EXOGENOUS commitment timing, not from commitment *policy*
+
+**Owner-adopted 2026-09-10 as a binding scope condition; see §12 of the
+preregistration draft.** The distinction below is the reason this design is
+adoptable at all, and the reason a successful run yields partial-scope evidence
+rather than a settled claim.
 
 COMMIT_INTERNAL is operationalised here as a schedule, because the owner
 constraint forbids importing State Promotion's unvalidated evidence gate. A

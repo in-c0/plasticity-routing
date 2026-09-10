@@ -176,16 +176,51 @@ with a note, per the EXP-001 precedent.
   reduced action space.
 - Reporting `H2` as evidence for CCS-C4.
 
-## 12. Scope of any result
+## 12. Scope of any result — BINDING, owner-adopted 2026-09-10
 
-A result here would support, at most:
+This section is a condition of adoption, not a caveat. It was fixed **before**
+any EXP-003 seed was drawn.
+
+A successful run supports, at most:
 
 > On SDW-1-style synthetic substrates, allocation content is separable from
-> commitment **timing**.
+> **exogenous** COMMIT_INTERNAL timing — a commitment schedule that is fixed in
+> advance and does not respond to the stream.
 
-It would **not** support separability from evidence-gated commitment, and would
-make **no** language-model claim. EXP-002 remains the LM track and is unaffected
-by this document.
+### What a successful run does NOT establish
+
+1. **Separability from a learned or adaptive internal-commit policy.** The
+   commitment operator here is a clock. A policy that decides *when* to commit on
+   the basis of what it has seen is a different object, and allocation could be
+   separable from a clock while being entangled with such a policy. Nothing in
+   this design can distinguish those cases.
+2. **Separability from evidence-gated commitment specifically** — the
+   `state-promotion` family — which remains outside this experiment by
+   construction.
+3. **Anything about language models.** EXP-002 remains the LM track and is
+   unaffected by this document.
+
+### Consequence for the CCS ledger — predeclared
+
+A successful EXP-003 becomes **admissible PARTIAL-scope evidence for CCS-C4**.
+
+It is **not** a route to marking CCS-C4 supported, and the umbrella must not
+promote CCS-C4 on this result alone. CCS-C4 claims separability from
+COMMIT_INTERNAL without restricting the commit family; this experiment restricts
+it to exogenous schedules. Closing the remainder requires a further experiment in
+which the commit policy is itself endogenous — learned or adaptive — while
+allocation varies.
+
+Recording this here, pre-result, is what makes it a scope declaration rather than
+a post-hoc narrowing. Whoever reads out EXP-003 is bound by it.
+
+### On the load-bearing control
+
+`ACTION_MATCHED_RANDOM` is the control that carries the inference, and it was
+adopted on the explicit grounds that it can hold **realized** allocation and
+commit volume fixed while changing *which* items are allocated where. If that
+matching fails at execution — see V6 — the primary contrast does not exist and
+no C4 evidence is produced, partial or otherwise.
 
 ## 13. Negative-result path
 
